@@ -85,6 +85,37 @@ public class GlobalExceptionHandling {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
     
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ExceptionResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, HttpServletRequest request) {
+
+        ExceptionResponse body = ExceptionResponse.builder()
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .method(request.getMethod())
+                .errorType(ResourceNotFoundException.getErrorType())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+    
+    @ExceptionHandler(InvalidActionException.class)
+    public ResponseEntity<ExceptionResponse> handleInvalidActionException(
+            InvalidActionException ex, HttpServletRequest request) {
+
+        ExceptionResponse body = ExceptionResponse.builder()
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .method(request.getMethod())
+                .errorType(InvalidActionException.getErrorType())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionResponse> handleGeneralException(
             Exception ex, HttpServletRequest request) {

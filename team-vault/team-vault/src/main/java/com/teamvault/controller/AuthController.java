@@ -1,14 +1,18 @@
 package com.teamvault.controller;
 
 import com.teamvault.DTO.SignUpRequest;
+import com.teamvault.models.CustomPrincipal;
 import com.teamvault.DTO.LoginRequest;
 import com.teamvault.DTO.AuthResponse;
 import com.teamvault.service.AuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,5 +36,32 @@ public class AuthController {
         AuthResponse response = authService.login(request);
         
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/me")
+    public ResponseEntity<CustomPrincipal> getCurrentUser() {
+
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomPrincipal)) {
+        	
+        	return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        
+        CustomPrincipal principal = (CustomPrincipal) authentication.getPrincipal();
+        
+        return ResponseEntity.ok(principal);
+    }
+    
+    @PutMapping("/users/{targetUserId}/promote")
+    public ResponseEntity<?> promoteUser(@PathVariable String targetUserId) {
+    	
+    	return authService.promoteUser(targetUserId);
+    }
+    
+    @PutMapping("/users/{targetUserId}/depromote")
+    public ResponseEntity<?> depromoteUser(@PathVariable String targetUserId) {
+    	
+    	return authService.depromoteUser(targetUserId);
     }
 }

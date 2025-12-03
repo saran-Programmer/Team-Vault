@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.teamvault.valueobject.NameVO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.teamvault.enums.UserRole;
 import com.teamvault.valueobject.ContactVO;
 import com.teamvault.valueobject.CredentialsVO;
@@ -40,4 +41,22 @@ public class User {
 	
 	@LastModifiedDate
 	private Instant lastUpdatedDate;
+	
+	@JsonIgnore
+    public static UserRole getNextRole(UserRole role) {
+        return switch (role) {
+            case USER -> UserRole.ADMIN;
+            case ADMIN -> UserRole.SUPER_ADMIN;
+            default -> role;
+        };
+    }
+	
+	@JsonIgnore
+	public static UserRole getPreviousRole(UserRole role) {
+	    return switch (role) {
+	        case SUPER_ADMIN -> UserRole.ADMIN;
+	        case ADMIN -> UserRole.USER;
+	        default -> role;
+	    };
+	}
 }
