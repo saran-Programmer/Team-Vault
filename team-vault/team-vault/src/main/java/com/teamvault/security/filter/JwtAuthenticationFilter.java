@@ -29,7 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
     	
         String path = request.getServletPath();
-        
         return path.equals("/auth/signup") || path.equals("/auth/login");
     }
 
@@ -41,11 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
         	
             filterChain.doFilter(request, response);
-            
             return;
         }
 
         String token = authHeader.substring(7);
+
         String username = jwtService.extractUsername(token);
         String userId = jwtService.extractUserId(token);
         String role = jwtService.extractRole(token);
@@ -53,29 +52,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            
+            jwtService.assertValid(token, userDetails);
 
-            if (jwtService.isTokenValid(token, userDetails)) {
+            CustomPrincipal principal = new CustomPrincipal(
+                    userId,
+                    username,
+                    role,
+                    userDetails.getAuthorities()
+            );
 
-                CustomPrincipal principal = new CustomPrincipal(
-                        userId,
-                        username,
-                        role,
-                        userDetails.getAuthorities()
-                );
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            userDetails.getAuthorities()
+                    );
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                principal,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
         filterChain.doFilter(request, response);
     }
-
 }

@@ -1,6 +1,7 @@
 package com.teamvault.mapper;
 
 import com.teamvault.DTO.SignUpRequest;
+import com.teamvault.DTO.UserResponseDTO;
 import com.teamvault.entity.User;
 import com.teamvault.enums.UserRole;
 import com.teamvault.valueobject.ContactVO;
@@ -29,6 +30,17 @@ public class UserMapper {
                         .secondaryEmail(dto.getSecondaryEmail())
                         .build())
                 .userRole(UserRole.USER)
+                .build();
+    }
+    
+    public static UserResponseDTO toUserResponse(User user) {
+
+        return UserResponseDTO.builder()
+                .id(user.getId())
+                .fullName(user.getName().getFullName())
+                .email(user.getCredentials().getEmail())
+                .userRole(user.getUserRole().name())
+                .createdDate(user.getCreatedDate())
                 .build();
     }
 }

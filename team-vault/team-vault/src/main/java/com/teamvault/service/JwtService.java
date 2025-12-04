@@ -107,18 +107,33 @@ public class JwtService {
         }
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public void assertValid(String token, UserDetails userDetails) {
     	
         try {
         	
-            Claims claims = getClaims(token);
+            Claims claims = getClaims(token); 
+
+            if (claims.getExpiration().before(new Date())) {
+            	
+                throw new TokenException("Token expired");
+            }
+
+            String username = claims.getSubject();
             
-            return claims.getSubject().equals(userDetails.getUsername())
-                    && !claims.getExpiration().before(new Date());
-            
-        } catch (Exception e) {
+            if (!username.equals(userDetails.getUsername())) {
+            	
+                throw new TokenException("Invalid token: username mismatch");
+            }
+
+        } catch (ExpiredJwtException e) {
         	
-            return false;
+            throw new TokenException("Token expired", e);
+
+        } catch (JwtException e) {
+        	
+            throw new TokenException("Invalid token", e);
         }
     }
+
+
 }
