@@ -18,11 +18,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
+@Builder
 @Document("user")
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-@Builder
 public class User {
 
 	@Id

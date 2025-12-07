@@ -112,7 +112,7 @@ public class GlobalExceptionHandling {
                 .timestamp(Instant.now())
                 .build();
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     

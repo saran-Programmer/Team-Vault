@@ -28,13 +28,21 @@ public class UserService {
     
     private final ApplicationEventPublisher eventPublisher;
     
-    public UserResponseDTO getUserById(String id) {
+    public UserResponseDTO getUserDTOById(String id) {
 
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
 
         return UserMapper.toUserResponse(user);
     }
     
+    public User getUserById(String id) {
+
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+
+        return user;
+    }
+    
+
     public ResponseEntity<?> promoteUser(String targetUserId) {
 
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();

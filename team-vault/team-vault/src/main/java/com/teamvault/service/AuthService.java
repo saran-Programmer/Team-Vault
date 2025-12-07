@@ -2,27 +2,17 @@ package com.teamvault.service;
 
 import java.util.Optional;
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.teamvault.DTO.AuthResponse;
 import com.teamvault.DTO.LoginRequest;
 import com.teamvault.DTO.SignUpRequest;
-import com.teamvault.DTO.UserPatchRequest;
-import com.teamvault.DTO.UserRoleChangeResponse;
 import com.teamvault.entity.User;
 import com.teamvault.enums.UserRole;
-import com.teamvault.event.model.UserRoleChangeEvent;
-import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.InvalidCredentialsException;
-import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.exception.UserExistsException;
 import com.teamvault.mapper.UserMapper;
-import com.teamvault.models.CustomPrincipal;
 import com.teamvault.repository.UserRepository;
-import com.teamvault.security.filter.SecurityUtil;
 
 import lombok.RequiredArgsConstructor;
 

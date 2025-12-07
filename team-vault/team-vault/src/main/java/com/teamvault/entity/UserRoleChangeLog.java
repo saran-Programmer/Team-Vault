@@ -10,11 +10,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document("user_role_change_log")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Document("user_role_change_log")
 public class UserRoleChangeLog {
 
     @Id
