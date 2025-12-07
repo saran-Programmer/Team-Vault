@@ -81,6 +81,13 @@ public class UserService {
         
         userRepository.save(targetUser);
         
+        UserRoleChangeResponse response = UserRoleChangeResponse.builder()
+                .userId(targetUser.getId())
+                .userName(targetUser.getName().getFullName())
+                .oldRole(oldRole.name())
+                .newRole(newRole.name())
+                .build();
+        
         UserRoleChangeEvent event = new UserRoleChangeEvent(
                 targetUser,
                 oldRole,
@@ -90,13 +97,6 @@ public class UserService {
         );
         
         eventPublisher.publishEvent(event);
-
-        UserRoleChangeResponse response = UserRoleChangeResponse.builder()
-                .userId(targetUser.getId())
-                .userName(targetUser.getName().getFullName())
-                .oldRole(oldRole.name())
-                .newRole(newRole.name())
-                .build();
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
@@ -136,7 +136,7 @@ public class UserService {
         UserRole newRole = User.getPreviousRole(targetRole);
 
         targetUser.setUserRole(newRole);
-        
+                
         userRepository.save(targetUser);
         
         UserRoleChangeEvent event = new UserRoleChangeEvent(
@@ -155,8 +155,7 @@ public class UserService {
                 .oldRole(oldRole.name())
                 .newRole(newRole.name())
                 .build();
-
-
+        
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 

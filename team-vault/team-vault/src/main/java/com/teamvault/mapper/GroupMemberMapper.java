@@ -5,8 +5,14 @@ import java.time.temporal.ChronoUnit;
 
 import com.teamvault.DTO.GroupInviteRequest;
 import com.teamvault.DTO.GroupInviteResponse;
+import com.teamvault.DTO.MembershipActionResponse;
 import com.teamvault.entity.GroupMember;
+import com.teamvault.entity.GroupMemberLog;
+import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.MembershipStatus;
+import com.teamvault.enums.UserGroupPermission;
+import com.teamvault.security.filter.SecurityUtil;
+import com.teamvault.valueobject.GroupMemberVO;
 import com.teamvault.valueobject.GroupMembershipVO;
 import com.teamvault.valueobject.GroupVO;
 import com.teamvault.valueobject.UserVO;
@@ -15,13 +21,12 @@ public class GroupMemberMapper {
 
 	private GroupMemberMapper() {}
 	
-	
-	public static GroupMember GroupInviteRequestToGroupMember(String userId, String invitedByUserId, GroupInviteRequest dto, String groupId) {
+	public static GroupMember GroupInviteRequestToGroupMember(String invitedByUserId, GroupInviteRequest dto, String groupId) {
 		
 		GroupMembershipVO groupMembershipVO = GroupMembershipVO.builder()
 				.invitedByUser(UserVO.builder().id(invitedByUserId).build())
 				.invitationSentAt(Instant.now())
-				.inviteMessage(dto.getInviteMessage())
+				.latestMessage(dto.getInviteMessage())
 				.build();
 		
 		return GroupMember.builder()
@@ -41,8 +46,52 @@ public class GroupMemberMapper {
 			    .targetUserId(groupMember.getUser().getId())
 			    .status(groupMember.getMembershipStatus())
 			    .invitedAt(groupMember.getGroupMembershipVO().getInvitationSentAt())
-			    .message(groupMember.getGroupMembershipVO().getInviteMessage())
+			    .message(groupMember.getGroupMembershipVO().getLatestMessage())
 			    .expiresAt(groupMember.getExpiresAt())
 			    .build();
 	}
+	
+    public static GroupMember getDefaultAdmin(String groupId, String adminUserId) {
+    	
+        String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+
+        GroupMember adminMember = GroupMember.builder()
+        		.user(UserVO.builder().id(adminUserId).build())
+        		.group(GroupVO.builder().id(groupId).build())
+                .membershipStatus(MembershipStatus.ACTIVE)
+                .userPermissions(UserGroupPermission.adminPermissions())
+                .groupMembershipVO(GroupMembershipVO.builder()
+                        .invitedByUser(UserVO.builder().id(currentUserId).build())
+                        .isFirstAdmin(true)
+                        .joinedAt(Instant.now())
+                        .build())
+                .build();
+        
+        return adminMember;
+    }
+    
+    public static GroupMemberLog getInvitationLog(GroupMember groupMember) {
+    	
+        return GroupMemberLog.builder()
+                .groupMember(GroupMemberVO.builder().id(groupMember.getId()).build())
+                .user(groupMember.getUser())
+                .group(groupMember.getGroup())
+                .actedBy(UserVO.builder().id(groupMember.getUser().getId()).build())
+                .event(GroupMemberEventType.INVITE_SENT)
+                .toStatus(MembershipStatus.PENDING)
+                .inviteMessage(groupMember.getGroupMembershipVO().getLatestMessage())
+                .build();
+    }
+    
+    public static MembershipActionResponse groupMemberToMembershipResponse(GroupMember groupMember) {
+    	
+    	return MembershipActionResponse.builder()
+    			.id(groupMember.getId())
+    			.groupId(groupMember.getGroup().getId())
+    			.userId(groupMember.getUser().getId())
+    			.membershipStatus(groupMember.getMembershipStatus())
+    			.userGroupPermissions(groupMember.getUserPermissions())
+    			.timestamp(Instant.now())
+    			.build();
+    }
 }

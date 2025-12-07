@@ -23,5 +23,5 @@ public class GroupMembershipVO {
 
     private Instant joinedAt;
     
-    private String inviteMessage;
+    private String latestMessage;
 }

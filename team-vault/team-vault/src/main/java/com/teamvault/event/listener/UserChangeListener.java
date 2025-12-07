@@ -10,11 +10,13 @@ import com.teamvault.entity.UserRoleChangeLog;
 import com.teamvault.event.model.UserRoleChangeEvent;
 import com.teamvault.repository.UserRoleChangeLogRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class UserChangeListener {
 
-    @Autowired
-    private UserRoleChangeLogRepository logRepository;
+    private final UserRoleChangeLogRepository userRoleChangeLogRepository;
 
     @EventListener
     public void handleUserRoleChanged(UserRoleChangeEvent event) {
@@ -30,6 +32,6 @@ public class UserChangeListener {
                 .timestamp(Instant.now())
                 .build();
 
-        logRepository.save(log);
+        userRoleChangeLogRepository.save(log);
     }
 }

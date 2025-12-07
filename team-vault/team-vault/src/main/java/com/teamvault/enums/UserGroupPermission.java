@@ -22,4 +22,10 @@ public enum UserGroupPermission {
             INVITE_USER
         );    
     }
+    
+    public static Set<UserGroupPermission> minimalPermissions() {
+    	
+        return Set.of(READ_RESOURCE);
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.teamvault.security.filter;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.teamvault.models.CustomPrincipal;
@@ -17,15 +18,30 @@ public class GroupSecurity {
     private final GroupMemberRepository groupMemberRepository;
 
     public boolean canInviteUser(String groupId) {
+    	
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
-        if (currentUser == null) return false;
+        
+        if (currentUser == null || currentUser.getAuthorities() == null) return false;
 
-        boolean isSuperAdmin = currentUser.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + UserRole.SUPER_ADMIN.toString()));
-        if (isSuperAdmin) return true;
+        for (GrantedAuthority authority : currentUser.getAuthorities()) {
+        	
+            if (("ROLE_" + UserRole.SUPER_ADMIN.toString()).equals(authority.getAuthority())) {
+            	
+                return true;
+            }
+        }
 
-        boolean isAdmin = currentUser.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + UserRole.ADMIN.toString()));
+        boolean isAdmin = false;
+        
+        for (GrantedAuthority authority : currentUser.getAuthorities()) {
+        	
+            if (("ROLE_" + UserRole.ADMIN.toString()).equals(authority.getAuthority())) {
+            	
+                isAdmin = true;
+                break;
+            }
+        }
+        
         if (!isAdmin) return false;
 
         return groupMemberRepository.findByUser_IdAndGroup_Id(currentUser.getUserId(), groupId)

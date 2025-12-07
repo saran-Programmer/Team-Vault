@@ -7,6 +7,6 @@ public enum MembershipStatus {
     ACTIVE,
     REJECTED,
     EXPIRED,
-    REMOVED;
-   
+    REMOVED,
+    EXITED
 }

@@ -7,11 +7,14 @@ import org.springframework.stereotype.Service;
 import com.teamvault.DTO.GroupRequestDTO;
 import com.teamvault.DTO.GroupResponseDTO;
 import com.teamvault.entity.Group;
+import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.User;
 import com.teamvault.enums.UserRole;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMapper;
+import com.teamvault.mapper.GroupMemberMapper;
+import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
 import com.teamvault.repository.UserRepository;
 import com.teamvault.security.filter.SecurityUtil;
@@ -22,11 +25,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GroupService {
 	
-	private final GroupMemberService groupMemberService;
-
     private final GroupRepository groupRepository;
     
     private final UserService userService;
+    
+    private final GroupMemberRepository groupMemberRepository;
 
     public GroupResponseDTO createGroup(GroupRequestDTO request) {
 
@@ -56,7 +59,9 @@ public class GroupService {
         Group group = GroupMapper.mapToEntity(request);
         Group saved = groupRepository.save(group);
         
-        groupMemberService.addDefaultAdmin(saved.getId(), adminUserId);
+        GroupMember defaultAdmin = GroupMemberMapper.getDefaultAdmin(saved.getId(), adminUserId);
+        
+        groupMemberRepository.save(defaultAdmin);
         
         return GroupMapper.mapToResponse(saved);
     }
@@ -75,7 +80,7 @@ public class GroupService {
         groupRepository.save(group);
     }
 
-    private Group getActiveGroupOrThrow(String groupId) {
+    public Group getActiveGroupOrThrow(String groupId) {
     	
         return groupRepository.findById(groupId)
                 .filter(g -> !g.isDeleted())
