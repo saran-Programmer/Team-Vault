@@ -24,6 +24,16 @@ public final class GroupMemberFields {
     public static final String INVITED_BY_USER_ID = "groupMembershipVO.invitedByUser._id";
 
     public static final String INVITE_MESSAGE = "groupMembershipVO.inviteMessage";
+    
+    public static final String LAST_ACCESSED = "groupAccessMetadataVO.lastAccessed";
+    
+    public static final String LAST_WRITE = "groupAccessMetadataVO.lastWrite";
+    
+    public static final String USER_PERMISSIONS = "userPermissions";
+    
+    public static final String ACCESS_META_DATA = "groupAccessMetadataVO";
+    
+    public static final String IS_DELETED = "isGroupDeleted";
 
     /* ========= LOOKUP ALIASES ========= */
 

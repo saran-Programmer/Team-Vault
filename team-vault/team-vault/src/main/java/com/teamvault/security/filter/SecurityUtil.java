@@ -1,5 +1,6 @@
 package com.teamvault.security.filter;
 
+import com.teamvault.enums.UserRole;
 import com.teamvault.models.CustomPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -37,4 +38,21 @@ public final class SecurityUtil {
                    .map(GrantedAuthority::getAuthority)
                    .anyMatch(a -> a.equals(authority));
     }
+    
+    public static UserRole getCurrentUserRole() {
+
+        CustomPrincipal principal = getCurrentUser();
+        if (principal == null || principal.getRole() == null) {
+            return null; // or throw SecurityException
+        }
+
+        String role = principal.getRole();
+
+        String roleName = role.startsWith("ROLE_")
+                ? role.substring(5)
+                : role;
+
+        return UserRole.valueOf(roleName);
+    }
+
 }

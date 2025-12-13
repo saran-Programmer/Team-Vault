@@ -16,7 +16,6 @@ import com.teamvault.mapper.GroupMapper;
 import com.teamvault.mapper.GroupMemberMapper;
 import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
-import com.teamvault.repository.UserRepository;
 import com.teamvault.security.filter.SecurityUtil;
 
 import lombok.RequiredArgsConstructor;

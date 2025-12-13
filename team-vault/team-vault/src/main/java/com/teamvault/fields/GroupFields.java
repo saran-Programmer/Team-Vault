@@ -11,6 +11,10 @@ public final class GroupFields {
     public static final String ID = "_id";
     
     public static final String GROUP_DETAILS = "groupDetailsVO";
+    
+    public static final String GROUP_TITLE = GROUP_DETAILS + ".title";
+    
+    public static final String GROUP_VISIBLITY = "groupVisibility";
 
     /* ========= EMBEDDED ========= */
 

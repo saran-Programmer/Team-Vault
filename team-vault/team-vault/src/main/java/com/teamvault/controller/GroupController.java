@@ -4,7 +4,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.teamvault.DTO.GroupRequestDTO;
-import com.teamvault.DTO.GroupResponseDTO;
 import com.teamvault.service.GroupService;
 
 import jakarta.validation.Valid;

@@ -22,25 +22,16 @@ public class GroupMemberDomainService {
         String currentUserId = SecurityUtil.getCurrentUser().getUserId();
 
         GroupMember groupMember = groupMemberRepository.findById(groupMemberId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "Group member not found for id: " + groupMemberId,
-                    "GroupMember"
-                )
-            );
+            .orElseThrow(() -> new ResourceNotFoundException("Group member not found for id: " + groupMemberId, "GroupMember"));
 
         if (!currentUserId.equals(groupMember.getUser().getId())) {
-            throw new InvalidActionException(
-                "You are not allowed to perform this action.",
-                "GroupMember"
-            );
+        	
+            throw new InvalidActionException("You are not allowed to perform this action.", "GroupMember");
         }
 
         if (groupMember.getMembershipStatus() != MembershipStatus.PENDING) {
-            throw new InvalidActionException(
-                "Only pending invitations can be processed.",
-                "GroupMember"
-            );
+        	
+            throw new InvalidActionException("Only pending invitations can be processed.", "GroupMember");
         }
 
         return groupMember;

@@ -1,18 +1,29 @@
 package com.teamvault.query.processor;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.bson.Document;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
+import org.springframework.data.mongodb.core.aggregation.LiteralOperators;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
+import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.GroupMembershipResponse;
+import com.teamvault.DTO.UserActiveGroupDTO;
 import com.teamvault.entity.GroupMember;
+import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
+import com.teamvault.enums.SortDirection;
+import com.teamvault.enums.UserGroupPermission;
+import com.teamvault.enums.UserRole;
 import com.teamvault.fields.GroupFields;
 import com.teamvault.fields.GroupMemberFields;
 import com.teamvault.fields.UserFields;
@@ -45,13 +56,10 @@ public class GroupMemberQueryProcessor {
 	            .as(UserFields.LOOKUP_USER_ALIAS);
 
 	    Aggregation aggregation = Aggregation.newAggregation(
-	            matchOperation,
-	            userLookup,
-	            groupLookup,
+	            matchOperation, userLookup,groupLookup,
 	            Aggregation.unwind(GroupFields.LOOKUP_GROUP_ALIAS),
 	            Aggregation.unwind(UserFields.LOOKUP_USER_ALIAS),
-	            Aggregation.project()
-	                    .and(GroupMemberFields.ID).as(GroupMemberFields.ID)
+	            Aggregation.project().and(GroupMemberFields.ID).as(GroupMemberFields.ID)
 	                    .and(GroupMemberFields.GROUP_ID).as("groupId")
 	                    .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_DETAILS).as("groupDetailsVO")
 	                    .and(GroupMemberFields.INVITE_MESSAGE).as("message")
@@ -67,4 +75,41 @@ public class GroupMemberQueryProcessor {
 	    return mongoTemplate.aggregate(aggregation, GroupMember.class, GroupMembershipResponse.class).getMappedResults();
 	}
 
+	public List<UserActiveGroupDTO> getUserActiveGroup(String userId, UserRole userRole, int offset, int limit, GroupMemberSortField sortBy, SortDirection sortDirection) {
+
+	    Criteria criteria = Criteria.where(GroupMemberFields.IS_DELETED).is(false);
+
+	    criteria.andOperator(Criteria.where(GroupMemberFields.USER_ID).is(userId),
+	                Criteria.where(GroupMemberFields.MEMBERSHIP_STATUS).is(MembershipStatus.ACTIVE));
+
+	    MatchOperation matchOperation = Aggregation.match(criteria);
+
+	    LookupOperation groupLookup = LookupOperation.newLookup()
+	            .from(GroupFields.GROUP_COLLECTION)
+	            .localField(GroupMemberFields.GROUP_ID)
+	            .foreignField(GroupFields.ID)
+	            .as(GroupFields.LOOKUP_GROUP_ALIAS);
+	    
+	    Sort.Direction direction = sortDirection == SortDirection.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
+	    
+	    SortOperation sortOperation = Aggregation.sort(direction, sortBy.getField());
+
+	    Aggregation aggregation = Aggregation.newAggregation(
+	    		matchOperation,groupLookup,
+	            Aggregation.unwind(GroupFields.LOOKUP_GROUP_ALIAS),
+	            Aggregation.project()
+	            .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.ID).as("groupId")
+	            .and(GroupMemberFields.ID).as("groupMemberId")
+	            .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_VISIBLITY).as("groupVisibility")
+	            .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_TITLE).as("groupTitle")
+	            .and(GroupMemberFields.ACCESS_META_DATA).as("groupAccessMetadataVO")
+	            .and(GroupMemberFields.USER_PERMISSIONS).as("permissions"),
+	            sortOperation,
+	            Aggregation.skip(offset),
+	            Aggregation.limit(limit)
+	    );
+
+	    return mongoTemplate.aggregate(aggregation, GroupMember.class, UserActiveGroupDTO.class)
+	            .getMappedResults();
+	}
 }

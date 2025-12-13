@@ -5,17 +5,16 @@ import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
+import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.MembershipStatus;
-import com.teamvault.enums.UserGroupPermission;
-import com.teamvault.exception.InvalidActionException;
-import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMemberMapper;
 import com.teamvault.repository.GroupMemberRepository;
-import com.teamvault.security.filter.SecurityUtil;
+import com.teamvault.repository.GroupRepository;
 import com.teamvault.service.GroupMemberDomainService;
+import com.teamvault.service.GroupService;
 import com.teamvault.valueobject.GroupMemberVO;
 import com.teamvault.valueobject.UserVO;
 
@@ -25,9 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MemberExitedGroup extends GroupMemberEvent {
 	
-	private GroupMember beforeUpdate;
-	
-	private GroupMember afterUpdate;
+    private final GroupRepository groupRepository;
     
     private final GroupMemberRepository groupMemberRepository;
     
@@ -35,8 +32,10 @@ public class MemberExitedGroup extends GroupMemberEvent {
     
     private final GroupMemberDomainService groupMemberDomainService;
     
+    private final GroupService groupService;
+    
 	@Override
-	protected GroupMemberLog getLog() {
+	protected GroupMemberLog getLog(GroupMember beforeUpdate, GroupMember afterUpdate) {
 
         return GroupMemberLog.builder()
                 .groupMember(GroupMemberVO.builder().id(afterUpdate.getId()).build())
@@ -55,15 +54,19 @@ public class MemberExitedGroup extends GroupMemberEvent {
 	@Override
 	public MembershipActionResponse applyMembershipAction(String groupId, MembershipActionRequest request) {
 		
-		beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
+		Group group = groupService.getActiveGroupOrThrow(groupId);
 		
-		afterUpdate = getLatestGroupMember(beforeUpdate);
+		GroupMember beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
 		
-		GroupMemberLog log = getLog();
+		GroupMember afterUpdate = getLatestGroupMember(beforeUpdate);
+		
+		GroupMemberLog log = getLog(beforeUpdate, afterUpdate);
 		
 		eventPublisher.publishEvent(log);
 		
 		groupMemberRepository.save(afterUpdate);
+		
+		updateGroupStatistics(group);
 		
 		return GroupMemberMapper.groupMemberToMembershipResponse(afterUpdate);
 	}
@@ -77,5 +80,15 @@ public class MemberExitedGroup extends GroupMemberEvent {
 	        .membershipStatus(MembershipStatus.EXITED)
 	        .groupMembershipVO(before.getGroupMembershipVO())
 	        .build();
+	}
+
+	@Override
+	protected void updateGroupStatistics(Group group) {
+
+		int currentMemberCount = group.getGroupStatisticsVO().getMembers();
+		
+		group.getGroupStatisticsVO().setMembers(currentMemberCount + 1);
+		
+		groupRepository.save(group);		
 	}
 }

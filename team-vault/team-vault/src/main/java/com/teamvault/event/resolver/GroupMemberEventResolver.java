@@ -10,7 +10,6 @@ import com.teamvault.event.model.GroupMemberEvent;
 import com.teamvault.event.model.MemberAcceptedInvite;
 import com.teamvault.event.model.MemberExitedGroup;
 import com.teamvault.event.model.MemberRejectedInvite;
-import com.teamvault.exception.InvalidActionException;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

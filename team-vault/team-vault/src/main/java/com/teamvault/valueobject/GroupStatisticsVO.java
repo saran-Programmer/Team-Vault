@@ -22,4 +22,6 @@ public class GroupStatisticsVO {
     private int posts;
     
     private int members;
+    
+    private int pendingJoinRequests;
 }

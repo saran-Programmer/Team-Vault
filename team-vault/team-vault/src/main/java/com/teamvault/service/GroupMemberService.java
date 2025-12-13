@@ -16,11 +16,16 @@ import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
 import com.teamvault.DTO.PermissionUpdateRequest;
 import com.teamvault.DTO.PermissionUpdateResponse;
+import com.teamvault.DTO.UserActiveGroupDTO;
+import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
+import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
+import com.teamvault.enums.SortDirection;
 import com.teamvault.enums.UserGroupPermission;
+import com.teamvault.enums.UserRole;
 import com.teamvault.event.model.GroupMemberEvent;
 import com.teamvault.event.resolver.GroupMemberEventResolver;
 import com.teamvault.exception.InvalidActionException;
@@ -28,6 +33,7 @@ import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMemberMapper;
 import com.teamvault.query.processor.GroupMemberQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
+import com.teamvault.repository.GroupRepository;
 import com.teamvault.security.filter.SecurityUtil;
 import com.teamvault.valueobject.UserVO;
 
@@ -42,6 +48,8 @@ public class GroupMemberService {
 	
 	private final GroupMemberQueryProcessor groupMemberQueryProcessor;
 	
+	private final GroupRepository groupRepository;
+	
     private final ApplicationEventPublisher eventPublisher;
     
     private final GroupMemberEventResolver groupMemberEventResolver;
@@ -50,7 +58,7 @@ public class GroupMemberService {
 
 	public GroupMembershipResponse inviteUser(String groupId, @Valid GroupInviteRequest request) {
 		
-		groupService.getActiveGroupOrThrow(groupId);
+		Group group = groupService.getActiveGroupOrThrow(groupId);
 
 	    String currentUserId = SecurityUtil.getCurrentUser().getUserId();
 
@@ -79,6 +87,12 @@ public class GroupMemberService {
 	        }).orElseGet(() -> GroupMemberMapper.GroupInviteRequestToGroupMember(currentUserId, request, groupId));
 	   	    
 	    groupMemberRepository.save(groupMember);
+	    
+	    int noPendingRequest =  group.getGroupStatisticsVO().getPendingJoinRequests();
+	    
+	    group.getGroupStatisticsVO().setPendingJoinRequests(noPendingRequest + 1);
+	    
+	    groupRepository.save(group);
 	    
 	    GroupMemberLog log = GroupMemberMapper.getInvitationLog(groupMember);
 	    	    
@@ -137,5 +151,14 @@ public class GroupMemberService {
 		eventPublisher.publishEvent(groupMember);
 		
 		return GroupMemberMapper.getGroupMemberPermissionUpdateResponse(groupMember, oldPermission);
+	}
+
+	public List<UserActiveGroupDTO> getUserActiveGroup(int offset, int limit, GroupMemberSortField sortBy, SortDirection sortDirection) {
+		
+		String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+		
+		UserRole userRole = SecurityUtil.getCurrentUserRole();
+		
+		return groupMemberQueryProcessor.getUserActiveGroup(currentUserId, userRole,offset, limit, sortBy, sortDirection);
 	}
 }

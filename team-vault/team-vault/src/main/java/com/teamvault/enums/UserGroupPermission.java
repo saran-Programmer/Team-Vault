@@ -1,5 +1,7 @@
 package com.teamvault.enums;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 public enum UserGroupPermission {
@@ -24,6 +26,12 @@ public enum UserGroupPermission {
     public static Set<UserGroupPermission> minimalPermissions() {
     	
         return Set.of(READ_RESOURCE);
+    }
+    
+    public static List<String> allPermissionNames() {
+        return Arrays.stream(UserGroupPermission.values())
+                .map(Enum::name)
+                .toList();
     }
 
 }

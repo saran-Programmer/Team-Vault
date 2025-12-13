@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;
+import com.teamvault.valueobject.GroupAccessMetadataVO;
 import com.teamvault.valueobject.GroupMembershipVO;
 import com.teamvault.valueobject.GroupVO;
 import com.teamvault.valueobject.UserVO;
@@ -42,6 +43,10 @@ public class GroupMember {
     
     @Builder.Default
     private Set<UserGroupPermission> userPermissions = Collections.emptySet();
+    
+    private GroupAccessMetadataVO groupAccessMetadataVO;
+    
+    private boolean isGroupDeleted;
 	
 	@CreatedDate
 	private Instant createdDate;

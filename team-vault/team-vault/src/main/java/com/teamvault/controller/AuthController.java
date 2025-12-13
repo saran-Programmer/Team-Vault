@@ -1,7 +1,6 @@
 package com.teamvault.controller;
 
 import com.teamvault.DTO.SignUpRequest;
-import com.teamvault.DTO.UserPatchRequest;
 import com.teamvault.models.CustomPrincipal;
 import com.teamvault.DTO.LoginRequest;
 import com.teamvault.DTO.AuthResponse;

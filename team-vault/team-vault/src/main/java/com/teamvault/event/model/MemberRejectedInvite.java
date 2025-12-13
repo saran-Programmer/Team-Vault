@@ -5,13 +5,16 @@ import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
+import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.mapper.GroupMemberMapper;
 import com.teamvault.repository.GroupMemberRepository;
+import com.teamvault.repository.GroupRepository;
 import com.teamvault.service.GroupMemberDomainService;
+import com.teamvault.service.GroupService;
 import com.teamvault.valueobject.GroupMemberVO;
 import com.teamvault.valueobject.UserVO;
 
@@ -21,18 +24,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MemberRejectedInvite extends GroupMemberEvent {
 
-	private GroupMember beforeUpdate;
-	
-	private GroupMember afterUpdate;
-    
     private final GroupMemberRepository groupMemberRepository;
+    
+    private final GroupRepository groupRepository;
     
     private final ApplicationEventPublisher eventPublisher;
     
     private final GroupMemberDomainService groupMemberDomainService;
     
+    private final GroupService groupService;
+    
 	@Override
-	protected GroupMemberLog getLog() {
+	protected GroupMemberLog getLog(GroupMember beforeUpdate, GroupMember afterUpdate) {
 
         return GroupMemberLog.builder()
                 .groupMember(GroupMemberVO.builder().id(afterUpdate.getId()).build())
@@ -51,15 +54,19 @@ public class MemberRejectedInvite extends GroupMemberEvent {
 	@Override
 	public MembershipActionResponse applyMembershipAction(String groupId, MembershipActionRequest request) {
 		
-		beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
+		Group group = groupService.getActiveGroupOrThrow(groupId);
 		
-		afterUpdate = getLatestGroupMember(beforeUpdate);
+		GroupMember beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
 		
-		GroupMemberLog log = getLog();
+		GroupMember afterUpdate = getLatestGroupMember(beforeUpdate);
+		
+		GroupMemberLog log = getLog(beforeUpdate, afterUpdate);
 		
 		eventPublisher.publishEvent(log);
 		
 		groupMemberRepository.save(afterUpdate);
+		
+		updateGroupStatistics(group);
 		
 		return GroupMemberMapper.groupMemberToMembershipResponse(afterUpdate);
 	}
@@ -73,5 +80,15 @@ public class MemberRejectedInvite extends GroupMemberEvent {
 	        .membershipStatus(MembershipStatus.REJECTED)
 	        .groupMembershipVO(before.getGroupMembershipVO())
 	        .build();
+	}
+
+	@Override
+	protected void updateGroupStatistics(Group group) {
+		
+		int pendingRequest = group.getGroupStatisticsVO().getPendingJoinRequests();
+		
+		group.getGroupStatisticsVO().setPendingJoinRequests(pendingRequest - 1);
+		
+		groupRepository.save(group);
 	}
 }

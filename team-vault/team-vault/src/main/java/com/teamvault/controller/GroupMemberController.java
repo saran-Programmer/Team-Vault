@@ -15,7 +15,9 @@ import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.PermissionUpdateRequest;
 import com.teamvault.annotations.CanInviteUser;
 import com.teamvault.annotations.PermissionUpdateAllowed;
+import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
+import com.teamvault.enums.SortDirection;
 import com.teamvault.service.GroupMemberService;
 
 import jakarta.validation.Valid;
@@ -41,14 +43,14 @@ public class GroupMemberController {
     public ResponseEntity<?> inviteUser(@PathVariable String groupId,
             @RequestBody @Valid GroupInviteRequest request) {
 
-        return ResponseEntity.ok(groupMemberService.inviteUser(groupId, request));
+        return ResponseEntity.accepted().body(groupMemberService.inviteUser(groupId, request));
     }
 	
 	@PutMapping("/{groupMemberId}/action")
     public ResponseEntity<?> performMembershipAction(@PathVariable String groupMemberId,
             @RequestBody @Valid MembershipActionRequest request) {
 
-        return ResponseEntity.ok(groupMemberService.performMembershipAction(groupMemberId, request));
+        return ResponseEntity.accepted().body(groupMemberService.performMembershipAction(groupMemberId, request));
     }
 	
 	@PermissionUpdateAllowed
@@ -56,6 +58,16 @@ public class GroupMemberController {
 	public ResponseEntity<?> updateUserPermission(@PathVariable String groupMemberId, 
 			@RequestBody @Valid PermissionUpdateRequest request) {
 		
-		return ResponseEntity.ok(groupMemberService.updateUserPermission(groupMemberId, request));
+		return ResponseEntity.accepted().body(groupMemberService.updateUserPermission(groupMemberId, request));
+	}
+	
+	
+	@GetMapping("/me/active")
+	public ResponseEntity<?> getUserActiveGroup(@RequestParam(defaultValue = "0") int offset,
+	        @RequestParam(defaultValue = "10") int limit,
+	        @RequestParam(defaultValue = GroupMemberSortField.DEFAULT) GroupMemberSortField sortBy,
+	        @RequestParam(defaultValue = SortDirection.DEFAULT) SortDirection sortDirection) {
+		
+		return ResponseEntity.ok(groupMemberService.getUserActiveGroup(offset, limit, sortBy, sortDirection));
 	}
 }

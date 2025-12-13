@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
+import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
@@ -12,6 +13,7 @@ import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.mapper.GroupMemberMapper;
 import com.teamvault.repository.GroupMemberRepository;
+import com.teamvault.repository.GroupRepository;
 import com.teamvault.service.GroupMemberDomainService;
 import com.teamvault.valueobject.GroupMemberVO;
 import com.teamvault.valueobject.UserVO;
@@ -21,19 +23,17 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class MemberAcceptedInvite extends GroupMemberEvent {
-	
-	private GroupMember beforeUpdate;
-	
-	private GroupMember afterUpdate;
-    
+
     private final GroupMemberRepository groupMemberRepository;
+    
+    private final GroupRepository groupRepository;
     
     private final ApplicationEventPublisher eventPublisher;
     
     private final GroupMemberDomainService groupMemberDomainService;
     
 	@Override
-	protected GroupMemberLog getLog() {
+	protected GroupMemberLog getLog(GroupMember beforeUpdate, GroupMember afterUpdate) {
 
         return GroupMemberLog.builder()
                 .groupMember(GroupMemberVO.builder().id(afterUpdate.getId()).build())
@@ -52,11 +52,11 @@ public class MemberAcceptedInvite extends GroupMemberEvent {
 	@Override
 	public MembershipActionResponse applyMembershipAction(String groupId, MembershipActionRequest request) {
 		
-		beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
+		GroupMember beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
 		
-		afterUpdate = getLatestGroupMember(beforeUpdate);
+		GroupMember afterUpdate = getLatestGroupMember(beforeUpdate);
 		
-		GroupMemberLog log = getLog();
+		GroupMemberLog log = getLog(beforeUpdate, afterUpdate);
 		
 		eventPublisher.publishEvent(log);
 		
@@ -64,7 +64,7 @@ public class MemberAcceptedInvite extends GroupMemberEvent {
 		
 		return GroupMemberMapper.groupMemberToMembershipResponse(afterUpdate);
 	}
-	
+		
 	private GroupMember getLatestGroupMember(GroupMember before) {
 
 	    return GroupMember.builder()
@@ -75,5 +75,19 @@ public class MemberAcceptedInvite extends GroupMemberEvent {
 	        .membershipStatus(MembershipStatus.ACTIVE)
 	        .groupMembershipVO(before.getGroupMembershipVO())
 	        .build();
+	}
+
+	@Override
+	protected void updateGroupStatistics(Group group) {
+		
+		int currentMemberCount = group.getGroupStatisticsVO().getMembers();
+		
+		int pendingRequest = group.getGroupStatisticsVO().getPendingJoinRequests();
+		
+		group.getGroupStatisticsVO().setPendingJoinRequests(pendingRequest - 1);
+		
+		group.getGroupStatisticsVO().setMembers(currentMemberCount + 1);
+		
+		groupRepository.save(group);
 	}
 }
