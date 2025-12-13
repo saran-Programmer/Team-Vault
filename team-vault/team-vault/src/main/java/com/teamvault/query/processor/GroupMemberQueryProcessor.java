@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
-import com.teamvault.DTO.GroupInviteResponse;
+import com.teamvault.DTO.GroupMembershipResponse;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.fields.GroupFields;
@@ -25,7 +25,7 @@ public class GroupMemberQueryProcessor {
 
 	private final MongoTemplate mongoTemplate;
 	
-	public List<GroupInviteResponse> getFilteredUserInvitations(String userId, int offset, int limit, MembershipStatus membershipStatus) {
+	public List<GroupMembershipResponse> getUserGroupMembershipsByStatus(String userId, int offset, int limit, MembershipStatus membershipStatus) {
 
 	    Criteria criteria = new Criteria().and(GroupMemberFields.USER_ID).is(userId)
 	            .and(GroupMemberFields.MEMBERSHIP_STATUS).is(membershipStatus.toString());
@@ -64,7 +64,7 @@ public class GroupMemberQueryProcessor {
 	            Aggregation.limit(limit)
 	    );
 
-	    return mongoTemplate.aggregate(aggregation, GroupMember.class, GroupInviteResponse.class).getMappedResults();
+	    return mongoTemplate.aggregate(aggregation, GroupMember.class, GroupMembershipResponse.class).getMappedResults();
 	}
 
 }

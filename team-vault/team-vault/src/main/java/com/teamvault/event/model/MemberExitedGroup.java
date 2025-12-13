@@ -36,7 +36,7 @@ public class MemberExitedGroup extends GroupMemberEvent {
     private final GroupMemberDomainService groupMemberDomainService;
     
 	@Override
-	public GroupMemberLog getLog() {
+	protected GroupMemberLog getLog() {
 
         return GroupMemberLog.builder()
                 .groupMember(GroupMemberVO.builder().id(afterUpdate.getId()).build())

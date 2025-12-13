@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public abstract class GroupMemberEvent {
 
-    public abstract GroupMemberLog getLog();
+    protected abstract GroupMemberLog getLog();
     
     public abstract MembershipActionResponse applyMembershipAction(String groupId, MembershipActionRequest request);
 }

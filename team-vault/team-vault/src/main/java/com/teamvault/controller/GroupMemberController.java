@@ -29,11 +29,11 @@ public class GroupMemberController {
 	private final GroupMemberService groupMemberService;
 	
 	@GetMapping
-	public ResponseEntity<?> getAllGroupInvitation(@RequestParam(defaultValue = "0") int offset,
+	public ResponseEntity<?> getUserGroupMembershipsByStatus(@RequestParam(defaultValue = "0") int offset,
 	        @RequestParam(defaultValue = "10") int limit,
 	        @RequestParam(required = true) MembershipStatus membershipStatus) {
 		
-		return ResponseEntity.ok(groupMemberService.getFilteredUserInvitations(offset, limit, membershipStatus));
+		return ResponseEntity.ok(groupMemberService.getUserGroupMembershipsByStatus(offset, limit, membershipStatus));
 	}
 	
 	@CanInviteUser

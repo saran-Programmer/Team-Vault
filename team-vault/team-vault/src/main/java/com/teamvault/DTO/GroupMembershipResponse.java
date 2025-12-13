@@ -11,7 +11,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class GroupInviteResponse {
+public class GroupMembershipResponse {
 	
 	private String id;
 	

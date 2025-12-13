@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Set;
 
 import com.teamvault.DTO.GroupInviteRequest;
-import com.teamvault.DTO.GroupInviteResponse;
+import com.teamvault.DTO.GroupMembershipResponse;
 import com.teamvault.DTO.MembershipActionResponse;
 import com.teamvault.DTO.PermissionUpdateResponse;
 import com.teamvault.entity.GroupMember;
@@ -40,9 +40,9 @@ public class GroupMemberMapper {
 				.build();
 	}
 	
-	public static GroupInviteResponse EntityToGroupInviteResponse(GroupMember groupMember) {
+	public static GroupMembershipResponse EntityToGroupInviteResponse(GroupMember groupMember) {
 		
-		return GroupInviteResponse.builder().id(groupMember.getId())
+		return GroupMembershipResponse.builder().id(groupMember.getId())
 				.groupId(groupMember.getGroup().getId())
 			    .invitedUserId(groupMember.getGroupMembershipVO().getInvitedByUser().getId())
 			    .targetUserId(groupMember.getUser().getId())

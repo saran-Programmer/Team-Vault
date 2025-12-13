@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.GroupInviteRequest;
-import com.teamvault.DTO.GroupInviteResponse;
+import com.teamvault.DTO.GroupMembershipResponse;
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
 import com.teamvault.DTO.PermissionUpdateRequest;
@@ -48,7 +48,7 @@ public class GroupMemberService {
     
     private final GroupService groupService;
 
-	public GroupInviteResponse inviteUser(String groupId, @Valid GroupInviteRequest request) {
+	public GroupMembershipResponse inviteUser(String groupId, @Valid GroupInviteRequest request) {
 		
 		groupService.getActiveGroupOrThrow(groupId);
 
@@ -87,11 +87,11 @@ public class GroupMemberService {
 	    return GroupMemberMapper.EntityToGroupInviteResponse(groupMember);
 	}
 	
-	public List<GroupInviteResponse> getFilteredUserInvitations(int offset, int limit, MembershipStatus membershipStatus) {
+	public List<GroupMembershipResponse> getUserGroupMembershipsByStatus(int offset, int limit, MembershipStatus membershipStatus) {
 		
 		String currentUserId = SecurityUtil.getCurrentUser().getUserId();
 
-		return groupMemberQueryProcessor.getFilteredUserInvitations(currentUserId, offset, limit, membershipStatus);
+		return groupMemberQueryProcessor.getUserGroupMembershipsByStatus(currentUserId, offset, limit, membershipStatus);
 	}
 
 	
