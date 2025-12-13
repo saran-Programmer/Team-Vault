@@ -28,6 +28,11 @@ public final class GroupFields {
 
     public static final String GROUP_DETAILS_DERIVED = LOOKUP_ALIAS + "." + GROUP_DETAILS;
     
+    public static final String GROUP_VISIBLITY_DERIVED = GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_VISIBLITY;
+    
+    public static final String GROUP_TITLE_DERIVE = GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_TITLE;
+    
     // ===== ALIAS =====
     public static final String LOOKUP_GROUP_ALIAS = "lookedUpGroupValue";
+    
 }

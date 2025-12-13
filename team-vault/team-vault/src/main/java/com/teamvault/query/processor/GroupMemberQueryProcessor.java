@@ -100,14 +100,11 @@ public class GroupMemberQueryProcessor {
 	            Aggregation.project()
 	            .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.ID).as("groupId")
 	            .and(GroupMemberFields.ID).as("groupMemberId")
-	            .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_VISIBLITY).as("groupVisibility")
-	            .and(GroupFields.LOOKUP_GROUP_ALIAS + "." + GroupFields.GROUP_TITLE).as("groupTitle")
+	            .and(GroupFields.GROUP_VISIBLITY_DERIVED).as("groupVisibility")
+	            .and(GroupFields.GROUP_TITLE_DERIVE).as("groupTitle")
 	            .and(GroupMemberFields.ACCESS_META_DATA).as("groupAccessMetadataVO")
 	            .and(GroupMemberFields.USER_PERMISSIONS).as("permissions"),
-	            sortOperation,
-	            Aggregation.skip(offset),
-	            Aggregation.limit(limit)
-	    );
+	            sortOperation, Aggregation.skip(offset), Aggregation.limit(limit));
 
 	    return mongoTemplate.aggregate(aggregation, GroupMember.class, UserActiveGroupDTO.class)
 	            .getMappedResults();
