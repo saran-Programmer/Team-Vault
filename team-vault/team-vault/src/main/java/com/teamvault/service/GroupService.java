@@ -82,8 +82,20 @@ public class GroupService {
 
     public Group getActiveGroupOrThrow(String groupId) {
     	
-        return groupRepository.findById(groupId)
-                .filter(g -> !g.isDeleted())
-                .orElseThrow(() -> new ResourceNotFoundException("Group", groupId));
+    	 Optional<Group> groupDoc = groupRepository.findById(groupId);
+    	 
+    	 if(groupDoc.isEmpty()) {
+    		 
+    		 throw new ResourceNotFoundException("Group", groupId);
+    	 }
+    	 
+    	 Group group = groupDoc.get();
+    	 
+    	 if(group.isDeleted()) {
+    		 
+    		 throw new InvalidActionException("Group " + groupId + " is deleted");
+    	 }
+    	
+        return group;
     }
 }

@@ -44,7 +44,7 @@ public class MemberRejectedInvite extends GroupMemberEvent {
                 .toStatus(MembershipStatus.REJECTED)
                 .oldPermissions(beforeUpdate.getUserPermissions())
                 .newPermissions(afterUpdate.getUserPermissions())
-                .inviteMessage(beforeUpdate.getGroupMembershipVO().getLatestMessage())
+                .notes(beforeUpdate.getGroupMembershipVO().getLatestMessage())
                 .build();
 	}
 

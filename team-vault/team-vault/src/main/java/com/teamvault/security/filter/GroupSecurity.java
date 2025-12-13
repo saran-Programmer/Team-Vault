@@ -1,10 +1,13 @@
 package com.teamvault.security.filter;
 
+import java.util.Optional;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.teamvault.models.CustomPrincipal;
 import com.teamvault.repository.GroupMemberRepository;
+import com.teamvault.entity.GroupMember;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.enums.UserRole;
@@ -18,35 +21,53 @@ public class GroupSecurity {
     private final GroupMemberRepository groupMemberRepository;
 
     public boolean canInviteUser(String groupId) {
-    	
+
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
-        if (currentUser == null || currentUser.getAuthorities() == null) return false;
+        if (currentUser == null) return false;
 
-        for (GrantedAuthority authority : currentUser.getAuthorities()) {
-        	
-            if (("ROLE_" + UserRole.SUPER_ADMIN.toString()).equals(authority.getAuthority())) {
-            	
-                return true;
-            }
-        }
+        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
 
-        boolean isAdmin = false;
+        if (!hasRole(currentUser, UserRole.ADMIN)) return false;
         
-        for (GrantedAuthority authority : currentUser.getAuthorities()) {
-        	
-            if (("ROLE_" + UserRole.ADMIN.toString()).equals(authority.getAuthority())) {
-            	
-                isAdmin = true;
-                break;
-            }
-        }
-        
-        if (!isAdmin) return false;
-
-        return groupMemberRepository.findByUser_IdAndGroup_Id(currentUser.getUserId(), groupId)
-                .filter(m -> m.getMembershipStatus() == MembershipStatus.ACTIVE)
-                .map(m -> m.getUserPermissions().contains(UserGroupPermission.INVITE_USER))
-                .orElse(false);
+        return groupMemberRepository
+                .findByUser_IdAndGroup_Id(currentUser.getUserId(), groupId)
+                .filter(member -> member.getMembershipStatus() == MembershipStatus.ACTIVE)
+                .map(member -> member.getUserPermissions()
+                        .contains(UserGroupPermission.INVITE_USER)).orElse(false);
     }
+    
+    public boolean permissionUpdateAllowed(String groupMemberId) {
+
+        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
+        
+        if (currentUser == null) return false;
+        
+         Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
+         
+         if(groupMemberDoc.isEmpty()) return false;
+        
+        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) {
+        	
+            return true;
+        }
+        
+        GroupMember groupMember = groupMemberDoc.get();
+        
+        return groupMemberRepository
+        	    .findByUser_IdAndGroup_Id(currentUser.getUserId(), groupMember.getGroup().getId())
+        	    .filter(actorMember -> actorMember.getMembershipStatus() == MembershipStatus.ACTIVE)
+        	    .map(actorMember -> actorMember.getUserPermissions().contains(UserGroupPermission.MANAGE_USER_ROLES))
+        	    .orElse(false);
+
+
+    }
+
+    private boolean hasRole(CustomPrincipal principal, UserRole role) {
+    	
+        return principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(auth -> auth.equals("ROLE_" + role.name()));
+    }
+
 }

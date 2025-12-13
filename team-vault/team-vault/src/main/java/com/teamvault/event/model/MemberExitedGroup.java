@@ -48,7 +48,7 @@ public class MemberExitedGroup extends GroupMemberEvent {
                 .toStatus(MembershipStatus.EXITED)
                 .oldPermissions(beforeUpdate.getUserPermissions())
                 .newPermissions(afterUpdate.getUserPermissions())
-                .inviteMessage(beforeUpdate.getGroupMembershipVO().getLatestMessage())
+                .notes(beforeUpdate.getGroupMembershipVO().getLatestMessage())
                 .build();
 	}
 

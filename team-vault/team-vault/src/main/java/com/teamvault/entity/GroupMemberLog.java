@@ -45,7 +45,7 @@ public class GroupMemberLog {
     private Set<UserGroupPermission> oldPermissions;
     private Set<UserGroupPermission> newPermissions;
     
-    private String inviteMessage;
+    private String notes;
     
     @CreatedDate
     private Instant eventAt;

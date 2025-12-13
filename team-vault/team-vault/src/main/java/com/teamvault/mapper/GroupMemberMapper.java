@@ -2,10 +2,12 @@ package com.teamvault.mapper;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Set;
 
 import com.teamvault.DTO.GroupInviteRequest;
 import com.teamvault.DTO.GroupInviteResponse;
 import com.teamvault.DTO.MembershipActionResponse;
+import com.teamvault.DTO.PermissionUpdateResponse;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
@@ -79,7 +81,7 @@ public class GroupMemberMapper {
                 .actedBy(UserVO.builder().id(groupMember.getUser().getId()).build())
                 .event(GroupMemberEventType.INVITE_SENT)
                 .toStatus(MembershipStatus.PENDING)
-                .inviteMessage(groupMember.getGroupMembershipVO().getLatestMessage())
+                .notes(groupMember.getGroupMembershipVO().getLatestMessage())
                 .build();
     }
     
@@ -92,6 +94,35 @@ public class GroupMemberMapper {
     			.membershipStatus(groupMember.getMembershipStatus())
     			.userGroupPermissions(groupMember.getUserPermissions())
     			.timestamp(Instant.now())
+    			.build();
+    }
+    
+    public static PermissionUpdateResponse getGroupMemberPermissionUpdateResponse(GroupMember groupMember, Set<UserGroupPermission> oldPermission) {
+    	
+    	return PermissionUpdateResponse.builder()
+    			.id(groupMember.getId())
+    			.userId(groupMember.getUser().getId())
+    			.groupId(groupMember.getGroup().getId())
+    			.membershipStatus(groupMember.getMembershipStatus())
+    			.oldPermissions(oldPermission)
+    			.newPermissions(groupMember.getUserPermissions())
+    			.build();
+    }
+    
+    public static GroupMemberLog getPemissionUpdationLog(GroupMember groupMember, Set<UserGroupPermission> oldPermission) {
+    	
+    	String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+    	
+    	return GroupMemberLog.builder()
+    			.user(groupMember.getUser())
+    			.group(groupMember.getGroup())
+    			.groupMember(GroupMemberVO.builder().id(groupMember.getId()).build())
+    			.actedBy(UserVO.builder().id(currentUserId).build())
+    			.event(GroupMemberEventType.PERMISSIONS_UPDATED)
+    			.fromStatus(groupMember.getMembershipStatus())
+    			.toStatus(groupMember.getMembershipStatus())
+    			.oldPermissions(oldPermission)
+    			.newPermissions(groupMember.getUserPermissions())
     			.build();
     }
 }

@@ -6,8 +6,7 @@ public enum UserGroupPermission {
 
     READ_RESOURCE,
     WRITE_RESOURCE,
-    PROMOTE_USER,
-    DEPROMOTE_USER,
+    MANAGE_USER_ROLES,
     REMOVE_USER,
     INVITE_USER;
 
@@ -16,8 +15,7 @@ public enum UserGroupPermission {
         return Set.of(
             READ_RESOURCE,
             WRITE_RESOURCE,
-            PROMOTE_USER,
-            DEPROMOTE_USER,
+            MANAGE_USER_ROLES,
             REMOVE_USER,
             INVITE_USER
         );    

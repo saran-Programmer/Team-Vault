@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.teamvault.DTO.GroupInviteRequest;
 import com.teamvault.DTO.MembershipActionRequest;
+import com.teamvault.DTO.PermissionUpdateRequest;
 import com.teamvault.annotations.CanInviteUser;
+import com.teamvault.annotations.PermissionUpdateAllowed;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.service.GroupMemberService;
 
@@ -48,4 +50,12 @@ public class GroupMemberController {
 
         return ResponseEntity.ok(groupMemberService.performMembershipAction(groupMemberId, request));
     }
+	
+	@PermissionUpdateAllowed
+	@PutMapping("/{groupMemberId}/permission")
+	public ResponseEntity<?> updateUserPermission(@PathVariable String groupMemberId, 
+			@RequestBody @Valid PermissionUpdateRequest request) {
+		
+		return ResponseEntity.ok(groupMemberService.updateUserPermission(groupMemberId, request));
+	}
 }

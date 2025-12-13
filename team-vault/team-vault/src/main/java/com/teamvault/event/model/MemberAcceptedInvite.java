@@ -45,7 +45,7 @@ public class MemberAcceptedInvite extends GroupMemberEvent {
                 .toStatus(MembershipStatus.ACTIVE)
                 .oldPermissions(beforeUpdate.getUserPermissions())
                 .newPermissions(afterUpdate.getUserPermissions())
-                .inviteMessage(beforeUpdate.getGroupMembershipVO().getLatestMessage())
+                .notes(beforeUpdate.getGroupMembershipVO().getLatestMessage())
                 .build();
 	}
 

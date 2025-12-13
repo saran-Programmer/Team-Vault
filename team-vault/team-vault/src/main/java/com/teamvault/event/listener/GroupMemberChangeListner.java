@@ -18,7 +18,6 @@ public class GroupMemberChangeListner {
 	@EventListener
 	public void handleGroupMemberInvite(GroupMemberLog log) {
 		
-		
 		groupMemberLogRepository.save(log);
 	}
 }

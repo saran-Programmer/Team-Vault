@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -13,13 +14,17 @@ import com.teamvault.DTO.GroupInviteRequest;
 import com.teamvault.DTO.GroupInviteResponse;
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
+import com.teamvault.DTO.PermissionUpdateRequest;
+import com.teamvault.DTO.PermissionUpdateResponse;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.MembershipStatus;
+import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.event.model.GroupMemberEvent;
 import com.teamvault.event.resolver.GroupMemberEventResolver;
 import com.teamvault.exception.InvalidActionException;
+import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMemberMapper;
 import com.teamvault.query.processor.GroupMemberQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
@@ -106,5 +111,31 @@ public class GroupMemberService {
 		GroupMemberEvent groupMember = groupMemberEventResolver.resolve(request.getGroupMemberEventType());
 		
 		return groupMember.applyMembershipAction(groupMemberId, request);
+	}
+
+	public PermissionUpdateResponse updateUserPermission(String groupMemberId, @Valid PermissionUpdateRequest request) {
+		
+		Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
+		
+		if(groupMemberDoc.isEmpty()) {
+			
+			new ResourceNotFoundException("GroupMember", groupMemberId);
+		}
+		
+		GroupMember groupMember = groupMemberDoc.get();
+		
+		groupService.getActiveGroupOrThrow(groupMember.getGroup().getId());
+		
+		Set<UserGroupPermission> oldPermission = groupMember.getUserPermissions();
+		
+		Set<UserGroupPermission> newPermission = request.getUserPermissions();
+		
+		groupMember.setUserPermissions(newPermission);
+		
+		groupMemberRepository.save(groupMember);
+		
+		eventPublisher.publishEvent(groupMember);
+		
+		return GroupMemberMapper.getGroupMemberPermissionUpdateResponse(groupMember, oldPermission);
 	}
 }
