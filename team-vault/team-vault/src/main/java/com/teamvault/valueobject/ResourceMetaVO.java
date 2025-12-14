@@ -1,0 +1,18 @@
+package com.teamvault.valueobject;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+public class ResourceMetaVO {
+
+	private int noLikes;
+	
+	private int noDislikes;
+	
+	private int noComments;
+	
+	private double avgRating;
+}

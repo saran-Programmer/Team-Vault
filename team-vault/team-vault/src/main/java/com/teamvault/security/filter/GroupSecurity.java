@@ -41,26 +41,43 @@ public class GroupSecurity {
 
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
+        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) {
+        	
+            return true;
+        }
+        
         if (currentUser == null) return false;
         
          Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
          
          if(groupMemberDoc.isEmpty()) return false;
+         
+         GroupMember groupMember = groupMemberDoc.get();
+                        
+        return groupMember.getMembershipStatus() == MembershipStatus.ACTIVE 
+        		&& groupMember.getUserPermissions().contains(UserGroupPermission.MANAGE_USER_ROLES) ? true : false;
+
+    }
+    
+    public boolean canUploadResource(String groupMemberId) {
+    	
+        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
         if (hasRole(currentUser, UserRole.SUPER_ADMIN)) {
         	
             return true;
         }
         
-        GroupMember groupMember = groupMemberDoc.get();
+        if (currentUser == null) return false;
         
-        return groupMemberRepository
-        	    .findByUser_IdAndGroup_Id(currentUser.getUserId(), groupMember.getGroup().getId())
-        	    .filter(actorMember -> actorMember.getMembershipStatus() == MembershipStatus.ACTIVE)
-        	    .map(actorMember -> actorMember.getUserPermissions().contains(UserGroupPermission.MANAGE_USER_ROLES))
-        	    .orElse(false);
-
-
+         Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
+         
+         if(groupMemberDoc.isEmpty()) return false;
+         
+         GroupMember groupMember = groupMemberDoc.get();
+                        
+        return groupMember.getMembershipStatus() == MembershipStatus.ACTIVE 
+        		&& groupMember.getUserPermissions().contains(UserGroupPermission.WRITE_RESOURCE) ? true : false;
     }
 
     private boolean hasRole(CustomPrincipal principal, UserRole role) {

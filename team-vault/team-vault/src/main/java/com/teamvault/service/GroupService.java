@@ -1,5 +1,6 @@
 package com.teamvault.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -29,6 +30,8 @@ public class GroupService {
     private final UserService userService;
     
     private final GroupMemberRepository groupMemberRepository;
+    
+    
 
     public GroupResponseDTO createGroup(GroupRequestDTO request) {
 
@@ -41,6 +44,7 @@ public class GroupService {
         }
         
         String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+        
         String adminUserId = request.getAdminUserId();
                 
         if(currentUserId.equals(adminUserId)) {
@@ -94,7 +98,9 @@ public class GroupService {
     		 
     		 throw new InvalidActionException("Group " + groupId + " is deleted");
     	 }
-    	
+    	 
+    	 groupMemberRepository.markGroupMembersAsDeleted(groupId);
+
         return group;
     }
 }

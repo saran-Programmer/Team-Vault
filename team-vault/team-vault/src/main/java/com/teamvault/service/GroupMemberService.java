@@ -159,6 +159,25 @@ public class GroupMemberService {
 		
 		UserRole userRole = SecurityUtil.getCurrentUserRole();
 		
-		return groupMemberQueryProcessor.getUserActiveGroup(currentUserId, userRole,offset, limit, sortBy, sortDirection);
+		return groupMemberQueryProcessor.getUserActiveGroup(currentUserId, userRole, offset, limit, sortBy, sortDirection);
+	}
+	
+	public GroupMember getActiveGroupMemberOrThrow(String groupMemberId) {
+		
+		Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId).filter(gm -> !gm.isGroupDeleted());
+		
+		if(groupMemberDoc.isEmpty()) {
+			
+			throw new ResourceNotFoundException("GroupMember", groupMemberId);
+		}
+		
+		GroupMember groupMember = groupMemberDoc.get();
+		
+		if(groupMember.isGroupDeleted()) {
+			
+			throw new InvalidActionException("Group " + groupMember.getGroup().getId() + " is deleted");
+		}
+		
+		return groupMember;
 	}
 }

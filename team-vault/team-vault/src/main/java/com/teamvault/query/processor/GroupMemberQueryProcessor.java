@@ -1,17 +1,12 @@
 package com.teamvault.query.processor;
 
-import java.util.Arrays;
 import java.util.List;
 
-import org.bson.Document;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
-import org.springframework.data.mongodb.core.aggregation.LiteralOperators;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
@@ -22,7 +17,6 @@ import com.teamvault.entity.GroupMember;
 import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.SortDirection;
-import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.enums.UserRole;
 import com.teamvault.fields.GroupFields;
 import com.teamvault.fields.GroupMemberFields;
