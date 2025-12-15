@@ -9,6 +9,7 @@ import com.teamvault.aws.ResourceS3Service;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.Resource;
 import com.teamvault.exception.InvalidActionException;
+import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.ResourceMapper;
 import com.teamvault.repository.ResourceRepository;
 import com.teamvault.security.filter.SecurityUtil;
@@ -24,6 +25,8 @@ public class ResourceService {
 	private final GroupMemberService groupMemberService;
 	
 	private final ResourceS3Service resourceS3Service;
+	
+	private static final long PRESIGNED_URL_EXPIRY_SECONDS = 900L;
 
 	public PresignedResourceResponse addNewResourceToGroup(String groupMemberId, ResourceUploadRequest resourceUploadRequest, MultipartFile file) {
 		
@@ -42,6 +45,13 @@ public class ResourceService {
 		
 		resourceRepository.save(resource);
 				
-		return resourceS3Service.generatePresignedUrl(resource, 900L);
+		return resourceS3Service.generatePresignedUrl(resource, PRESIGNED_URL_EXPIRY_SECONDS);
+	}
+
+	public PresignedResourceResponse viewGroupResources(String resourceId) {
+		
+		Resource resource = resourceRepository.findById(resourceId).orElseThrow(() -> new ResourceNotFoundException("User", resourceId));
+		
+		return resourceS3Service.generatePresignedUrl(resource, PRESIGNED_URL_EXPIRY_SECONDS);
 	}
 }

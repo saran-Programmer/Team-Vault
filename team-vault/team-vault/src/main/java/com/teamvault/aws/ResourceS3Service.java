@@ -121,12 +121,14 @@ public class ResourceS3Service {
         return PresignedResourceResponse.builder()
         		.resourceId(resource.getId())
         		.resourceTitle(resource.getResourceDetails().getTitle())
+        		.resourceOwnerId(resource.getUser().getId())
         		.resourceDescription(resource.getResourceDetails().getDescription())
         		.groupMemberId(resource.getGroupMemberVO().getId())
                 .presignedUrl(presignedRequest.url().toString())
                 .versionId(versionId)
                 .tags(tags)
                 .expiresInSeconds(effectiveExpiry)
+                .resourceVisiblity(resource.getResourceVisiblity())
                 .timestamp(Instant.now())
                 .build();
 

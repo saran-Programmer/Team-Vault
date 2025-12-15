@@ -33,7 +33,8 @@ public class GroupMemberQueryProcessor {
 	public List<GroupMembershipResponse> getUserGroupMembershipsByStatus(String userId, int offset, int limit, MembershipStatus membershipStatus) {
 
 	    Criteria criteria = new Criteria().and(GroupMemberFields.USER_ID).is(userId)
-	            .and(GroupMemberFields.MEMBERSHIP_STATUS).is(membershipStatus.toString());
+	            .and(GroupMemberFields.MEMBERSHIP_STATUS).is(membershipStatus.toString())
+	            .and(GroupMemberFields.IS_DELETED).is(false);
 
 	    MatchOperation matchOperation = Aggregation.match(criteria);
 

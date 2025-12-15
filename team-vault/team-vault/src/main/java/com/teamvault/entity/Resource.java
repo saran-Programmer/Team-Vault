@@ -39,7 +39,7 @@ public class Resource {
 	private ResourceVisiblity resourceVisiblity;
 	
 	@Builder.Default
-	private ResourceMetaVO resourceMeta = ResourceMetaVO.builder().build();;
+	private ResourceMetaVO resourceMeta = ResourceMetaVO.builder().build();
 	
 	private S3Details s3Details;
 	

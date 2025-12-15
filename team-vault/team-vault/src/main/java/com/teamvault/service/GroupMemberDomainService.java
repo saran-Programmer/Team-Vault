@@ -21,7 +21,7 @@ public class GroupMemberDomainService {
 
         String currentUserId = SecurityUtil.getCurrentUser().getUserId();
 
-        GroupMember groupMember = groupMemberRepository.findById(groupMemberId)
+        GroupMember groupMember = groupMemberRepository.findById(groupMemberId).filter(gm -> !gm.isGroupDeleted())
             .orElseThrow(() -> new ResourceNotFoundException("Group member not found for id: " + groupMemberId, "GroupMember"));
 
         if (!currentUserId.equals(groupMember.getUser().getId())) {

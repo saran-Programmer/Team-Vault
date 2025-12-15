@@ -133,11 +133,16 @@ public class GroupMemberService {
 		
 		if(groupMemberDoc.isEmpty()) {
 			
-			new ResourceNotFoundException("GroupMember", groupMemberId);
+			throw new ResourceNotFoundException("GroupMember", groupMemberId);
 		}
 		
 		GroupMember groupMember = groupMemberDoc.get();
 		
+		if(groupMember.isGroupDeleted()) {
+			
+			throw new InvalidActionException("Group with id " + groupMember.getGroup().getId() + " is deleted");
+		}
+
 		groupService.getActiveGroupOrThrow(groupMember.getGroup().getId());
 		
 		Set<UserGroupPermission> oldPermission = groupMember.getUserPermissions();
