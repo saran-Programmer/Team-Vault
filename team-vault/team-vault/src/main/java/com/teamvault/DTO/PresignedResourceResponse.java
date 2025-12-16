@@ -31,6 +31,6 @@ public class PresignedResourceResponse {
     private long expiresInSeconds;
     
     private ResourceVisiblity resourceVisiblity;
-	
+    	
 	private Instant timestamp;
 }

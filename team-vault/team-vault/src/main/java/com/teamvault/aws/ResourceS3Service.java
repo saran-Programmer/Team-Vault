@@ -134,7 +134,37 @@ public class ResourceS3Service {
 
     }
 
+    public void markObjectAsDeleted(Resource resource) {
 
+        String objectKey = resource.getGroup().getId() + "/" + resource.getUser().getId() + "/" + resource.getS3Details().getFileName();
+
+        Map<String, String> existingTags =
+                s3Client.getObjectTagging(GetObjectTaggingRequest.builder()
+                        .bucket(bucketName)
+                        .key(objectKey)
+                        .build())
+                .tagSet()
+                .stream()
+                .collect(Collectors.toMap(Tag::key, Tag::value));
+
+        existingTags.put("deleted", "true");
+        existingTags.put("deletedAt", Instant.now().toString());
+
+        var tagSet = existingTags.entrySet()
+                .stream()
+                .map(e -> Tag.builder()
+                        .key(e.getKey())
+                        .value(e.getValue())
+                        .build())
+                .toList();
+
+        s3Client.putObjectTagging(builder -> builder
+                .bucket(bucketName)
+                .key(objectKey)
+                .tagging(tagging -> tagging.tagSet(tagSet)));
+    }
+
+    
 
     private Map<String, String> getResourceTags(MultipartFile file) {
     	

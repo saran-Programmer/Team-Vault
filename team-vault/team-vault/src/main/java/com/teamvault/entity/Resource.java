@@ -41,7 +41,11 @@ public class Resource {
 	@Builder.Default
 	private ResourceMetaVO resourceMeta = ResourceMetaVO.builder().build();
 	
+	private boolean isDeleted;
+	
 	private S3Details s3Details;
+	
+	private Instant deletedAt;
 	
 	private Instant uploadedDate;
 }

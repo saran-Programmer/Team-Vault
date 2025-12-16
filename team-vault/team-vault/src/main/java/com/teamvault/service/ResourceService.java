@@ -1,5 +1,8 @@
 package com.teamvault.service;
 
+import java.time.Instant;
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -50,8 +53,40 @@ public class ResourceService {
 
 	public PresignedResourceResponse viewGroupResources(String resourceId) {
 		
-		Resource resource = resourceRepository.findById(resourceId).orElseThrow(() -> new ResourceNotFoundException("User", resourceId));
+		Resource resource = getResourceOrThrow(resourceId);
 		
 		return resourceS3Service.generatePresignedUrl(resource, PRESIGNED_URL_EXPIRY_SECONDS);
+	}
+	
+	public void deleteResourceById(String resourceId) {
+
+		Resource resource = getResourceOrThrow(resourceId);
+		
+		resourceS3Service.markObjectAsDeleted(resource);
+		
+		resource.setDeleted(true);
+		
+		resource.setDeletedAt(Instant.now());
+		
+		resourceRepository.save(resource);
+	}
+	
+	public Resource getResourceOrThrow(String resourceId) {
+		
+		Optional<Resource> resourceDoc = resourceRepository.findById(resourceId);
+		
+		if(resourceDoc.isEmpty()) {
+			
+			 throw new ResourceNotFoundException("User", resourceId);
+		}
+		
+		Resource resource = resourceDoc.get();
+		
+		if(resource.isDeleted()) {
+			
+			throw new InvalidActionException("Group " + resource.getId() + " is deleted");
+		}
+		
+		return resource;
 	}
 }
