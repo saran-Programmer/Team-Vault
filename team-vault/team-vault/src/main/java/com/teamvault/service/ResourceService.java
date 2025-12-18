@@ -1,19 +1,26 @@
 package com.teamvault.service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.teamvault.DTO.ResourceUploadRequest;
 import com.teamvault.DTO.PresignedResourceResponse;
+import com.teamvault.DTO.ResourceResponse;
 import com.teamvault.aws.ResourceS3Service;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.Resource;
+import com.teamvault.enums.ResourceSortField;
+import com.teamvault.enums.ResourceVisiblity;
+import com.teamvault.enums.SortDirection;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.ResourceMapper;
+import com.teamvault.query.processor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceRepository;
 import com.teamvault.security.filter.SecurityUtil;
 
@@ -28,6 +35,8 @@ public class ResourceService {
 	private final GroupMemberService groupMemberService;
 	
 	private final ResourceS3Service resourceS3Service;
+	
+	private final ResourceQueryProcessor resourceQueryProcessor;
 	
 	private static final long PRESIGNED_URL_EXPIRY_SECONDS = 900L;
 
@@ -77,16 +86,28 @@ public class ResourceService {
 		
 		if(resourceDoc.isEmpty()) {
 			
-			 throw new ResourceNotFoundException("User", resourceId);
+			 throw new ResourceNotFoundException("Resource", resourceId);
 		}
 		
 		Resource resource = resourceDoc.get();
 		
 		if(resource.isDeleted()) {
 			
-			throw new InvalidActionException("Group " + resource.getId() + " is deleted");
+			throw new InvalidActionException("Deleted Resource :" + resource.getId());
 		}
 		
 		return resource;
+	}
+
+	public List<ResourceResponse> listResourcesDTO(String groupMemberId, ResourceVisiblity resourceVisiblity, 
+			ResourceSortField resourceSortField, SortDirection sortDirection,int offset, int limit) {
+		
+		GroupMember groupMember = groupMemberService.getActiveGroupMemberOrThrow(groupMemberId);
+		
+		String userId = groupMember.getUser().getId();
+		
+		String groupId = groupMember.getGroup().getId();
+
+		return resourceQueryProcessor.listResourcesDTO(userId, groupId, resourceVisiblity, resourceSortField, sortDirection, offset, limit);
 	}
 }

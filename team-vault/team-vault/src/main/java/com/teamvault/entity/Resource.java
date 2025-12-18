@@ -32,7 +32,7 @@ public class Resource {
 	
 	private UserVO user;
 	
-	private GroupMemberVO groupMemberVO;
+	private GroupMemberVO groupMember;
 	
 	private ResourceDetailsVO resourceDetails;
 	

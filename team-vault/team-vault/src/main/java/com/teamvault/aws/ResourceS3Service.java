@@ -123,7 +123,7 @@ public class ResourceS3Service {
         		.resourceTitle(resource.getResourceDetails().getTitle())
         		.resourceOwnerId(resource.getUser().getId())
         		.resourceDescription(resource.getResourceDetails().getDescription())
-        		.groupMemberId(resource.getGroupMemberVO().getId())
+        		.groupMemberId(resource.getGroupMember().getId())
                 .presignedUrl(presignedRequest.url().toString())
                 .versionId(versionId)
                 .tags(tags)

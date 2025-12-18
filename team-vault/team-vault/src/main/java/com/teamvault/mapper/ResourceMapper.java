@@ -3,7 +3,6 @@ package com.teamvault.mapper;
 import java.time.Instant;
 
 import com.teamvault.DTO.ResourceUploadRequest;
-import com.teamvault.DTO.PresignedResourceResponse;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.Resource;
 import com.teamvault.valueobject.GroupMemberVO;
@@ -24,7 +23,7 @@ public class ResourceMapper {
 		return Resource.builder()
 				.group(groupMember.getGroup())
 				.user(groupMember.getUser())
-				.groupMemberVO(groupMemberVO)
+				.groupMember(groupMemberVO)
 				.resourceVisiblity(resourceUploadRequest.getResourceVisiblity())
 				.resourceDetails(resourceDetails)
 				.uploadedDate(Instant.now())

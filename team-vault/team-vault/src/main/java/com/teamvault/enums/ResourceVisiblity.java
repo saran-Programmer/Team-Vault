@@ -4,5 +4,7 @@ public enum ResourceVisiblity {
 
 	PUBLIC,
 	PRIVATE,
-	ARCHIVED
+	ARCHIVED;
+	
+	public static final String DEFAULT_RESOURCE_VISIBLITY = "PUBLIC";
 }

@@ -1,5 +1,7 @@
 package com.teamvault.controller;
 
+import java.util.List;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -8,15 +10,21 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.teamvault.DTO.PresignedResourceResponse;
+import com.teamvault.DTO.ResourceResponse;
 import com.teamvault.DTO.ResourceUploadRequest;
 import com.teamvault.annotations.CanDeleteResource;
 import com.teamvault.annotations.CanUploadResource;
+import com.teamvault.annotations.CanViewGroupResources;
 import com.teamvault.annotations.CanViewResource;
+import com.teamvault.enums.ResourceSortField;
+import com.teamvault.enums.ResourceVisiblity;
+import com.teamvault.enums.SortDirection;
 import com.teamvault.service.ResourceService;
 
 import lombok.RequiredArgsConstructor;
@@ -52,4 +60,20 @@ public class ResourceController {
 		
 		return ResponseEntity.noContent().build();
 	}
+	
+	@CanViewGroupResources
+	@GetMapping("/{groupMemberId}/resources")
+	public ResponseEntity<?> listResourcesDTO(@PathVariable String groupMemberId,
+			@RequestParam(defaultValue = ResourceVisiblity.DEFAULT_RESOURCE_VISIBLITY) ResourceVisiblity resourceVisiblity,
+			@RequestParam(defaultValue = ResourceSortField.DEFAULT_SORT_FIELD) ResourceSortField resourceSortField,
+			@RequestParam(defaultValue = SortDirection.DEFAULT) SortDirection sortDirection,
+			@RequestParam(defaultValue = "0") int offset,
+	        @RequestParam(defaultValue = "10") int limit) {
+		
+		List<ResourceResponse> resourceDTO = resourceService.listResourcesDTO(groupMemberId, resourceVisiblity, resourceSortField, 
+				sortDirection, offset, limit);
+
+		return ResponseEntity.ok(resourceDTO);
+	}
+
 }
