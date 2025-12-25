@@ -99,7 +99,7 @@ public class GroupSecurity {
                         && member.getUserPermissions().contains(UserGroupPermission.READ_RESOURCE)).isPresent();
     }
     
-    public boolean canDeleteResource(String resourceId) {
+    public boolean canModifyResource(String resourceId) {
     	
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         

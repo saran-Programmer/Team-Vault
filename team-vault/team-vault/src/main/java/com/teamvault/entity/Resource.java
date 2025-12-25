@@ -40,7 +40,7 @@ public class Resource {
 	private ResourceVisiblity resourceVisiblity;
 	
 	@Builder.Default
-	private ResourceMetaVO resourceMeta = ResourceMetaVO.builder().build();
+	private ResourceMetaVO resourceMeta = new ResourceMetaVO();
 	
 	private boolean isDeleted;
 	

@@ -5,8 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -14,8 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.teamvault.DTO.PresignedResourceResponse;
+import com.teamvault.DTO.ResourceUpdateRequest;
 import com.teamvault.DTO.ResourceUploadRequest;
-import com.teamvault.annotations.CanDeleteResource;
+import com.teamvault.annotations.CanModifyResource;
 import com.teamvault.annotations.CanUploadResource;
 import com.teamvault.annotations.CanViewGroupResources;
 import com.teamvault.annotations.CanViewResource;
@@ -24,6 +27,7 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.SortDirection;
 import com.teamvault.service.ResourceService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -43,19 +47,29 @@ public class ResourceController {
 	@CanUploadResource
 	@PostMapping(value = "/{groupMemberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<?> addNewResourceToGroup(@PathVariable String groupMemberId,
-		        @ModelAttribute ResourceUploadRequest request,
+		        @ModelAttribute @Valid ResourceUploadRequest request,
 		        @RequestPart("file") MultipartFile file) {
 		
 		return ResponseEntity.accepted().body(resourceService.addNewResourceToGroup(groupMemberId, request, file));
 	}
 	
-	@CanDeleteResource
+	@CanModifyResource
 	@DeleteMapping(value = "/{resourceId}")
 	public ResponseEntity<?> deleteResourceById(@PathVariable String resourceId) {
 		
 		resourceService.deleteResourceById(resourceId);
 		
 		return ResponseEntity.noContent().build();
+	}
+	
+	@CanModifyResource
+	@PatchMapping(value = "/{resourceId}")
+	public ResponseEntity<?> patchResourceById(@PathVariable String resourceId,
+			@RequestBody @Valid ResourceUpdateRequest request) {
+		
+		resourceService.patchResourceById(resourceId, request);
+		
+		return ResponseEntity.accepted().build();
 	}
 	
 	@CanViewGroupResources
@@ -72,5 +86,4 @@ public class ResourceController {
 
 		return ResponseEntity.ok(resourceDTO);
 	}
-
 }
