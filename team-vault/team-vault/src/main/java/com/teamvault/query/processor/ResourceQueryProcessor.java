@@ -55,33 +55,25 @@ public class ResourceQueryProcessor {
 	
 	private Criteria buildVisibilityCriteria(String userId, ResourceVisiblity visibility) {
 
-	    Criteria publicCriteria = Criteria.where(ResourceFields.VISIBLITY)
-	            .is(ResourceVisiblity.PUBLIC);
+	    return switch (visibility) {
 
-	    Criteria privateCriteria = Criteria.where(ResourceFields.VISIBLITY)
-	            .is(ResourceVisiblity.PRIVATE)
-	            .and(ResourceFields.USER_ID).is(userId);
-	    
-	    Criteria archiveCriteria = Criteria.where(ResourceFields.VISIBLITY)
-	            .is(ResourceVisiblity.ARCHIVED)
-	            .and(ResourceFields.USER_ID).is(userId);
-
-	    if (visibility == ResourceVisiblity.PUBLIC) {
-	    	
-	        return publicCriteria;
-	    }
-
-	    if (visibility == ResourceVisiblity.PRIVATE) {
-	    	
-	        return privateCriteria;
-	    }
-	    
-	    if(visibility == ResourceVisiblity.ARCHIVED) {
-	    	
-	    	return archiveCriteria;
-	    }
-
-	    return new Criteria().orOperator(publicCriteria, privateCriteria);
+	        case PUBLIC -> visibilityOnly(ResourceVisiblity.PUBLIC);
+	        case PRIVATE -> visibilityWithUser(ResourceVisiblity.PRIVATE, userId);
+	        case ARCHIVED -> visibilityWithUser(ResourceVisiblity.ARCHIVED, userId);
+	        default -> new Criteria().orOperator(
+	                visibilityOnly(ResourceVisiblity.PUBLIC),
+	                visibilityWithUser(ResourceVisiblity.PRIVATE, userId));
+	    };
 	}
+
+	private Criteria visibilityOnly(ResourceVisiblity visibility) {
+	    return Criteria.where(ResourceFields.VISIBLITY).is(visibility);
+	}
+
+	private Criteria visibilityWithUser(ResourceVisiblity visibility, String userId) {
+	    return Criteria.where(ResourceFields.VISIBLITY).is(visibility)
+	            .and(ResourceFields.USER_ID).is(userId);
+	}
+
 
 }

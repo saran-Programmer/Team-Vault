@@ -1,7 +1,5 @@
 package com.teamvault.controller;
 
-import java.util.List;
-
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.teamvault.DTO.PresignedResourceResponse;
-import com.teamvault.DTO.ResourceResponse;
 import com.teamvault.DTO.ResourceUploadRequest;
 import com.teamvault.annotations.CanDeleteResource;
 import com.teamvault.annotations.CanUploadResource;
@@ -70,7 +67,7 @@ public class ResourceController {
 			@RequestParam(defaultValue = "0") int offset,
 	        @RequestParam(defaultValue = "10") int limit) {
 		
-		List<ResourceResponse> resourceDTO = resourceService.listResourcesDTO(groupMemberId, resourceVisiblity, resourceSortField, 
+		var resourceDTO = resourceService.listResourcesDTO(groupMemberId, resourceVisiblity, resourceSortField, 
 				sortDirection, offset, limit);
 
 		return ResponseEntity.ok(resourceDTO);

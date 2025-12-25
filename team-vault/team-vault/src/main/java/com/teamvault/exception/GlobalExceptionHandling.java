@@ -143,4 +143,19 @@ public class GlobalExceptionHandling {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+    
+    @ExceptionHandler(S3Exception.class)
+    public ResponseEntity<ExceptionResponse> handleS3Exception(
+            Exception ex, HttpServletRequest request) {
+
+        ExceptionResponse body = ExceptionResponse.builder()
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .method(request.getMethod())
+                .errorType(S3Exception.getErrorType())
+                .timestamp(Instant.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }

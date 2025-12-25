@@ -9,6 +9,7 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.models.S3Details;
 import com.teamvault.valueobject.GroupMemberVO;
 import com.teamvault.valueobject.GroupVO;
+import com.teamvault.valueobject.ResourceDeletionStatus;
 import com.teamvault.valueobject.ResourceDetailsVO;
 import com.teamvault.valueobject.ResourceMetaVO;
 import com.teamvault.valueobject.UserVO;
@@ -46,6 +47,11 @@ public class Resource {
 	private S3Details s3Details;
 	
 	private Instant deletedAt;
+	
+	@Builder.Default
+	private ResourceDeletionStatus deletionStatus = ResourceDeletionStatus.ACTIVE;
+	
+	private Instant resourceMoveAt;
 	
 	private Instant uploadedDate;
 }

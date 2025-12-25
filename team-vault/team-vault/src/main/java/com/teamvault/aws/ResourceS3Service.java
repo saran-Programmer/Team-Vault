@@ -8,17 +8,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.teamvault.DTO.PresignedResourceResponse;
 import com.teamvault.entity.Resource;
+import com.teamvault.exception.S3Exception;
 import com.teamvault.models.S3Details;
 
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -30,6 +38,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceS3Service {
@@ -39,9 +48,18 @@ public class ResourceS3Service {
     private final S3Presigner s3Presigner;
 
     @Value("${aws.resource-bucket-name}")
-    private String bucketName;
+    private String mainBucketName;
 
-    public S3Details uploadFile(MultipartFile file, String groupId, String userId) {
+    @Value("${aws.deleted-resource-bucket-name}")
+    private String deletedBucketName;
+    
+
+    @Retryable(
+    	retryFor = { IOException.class, SdkException.class },
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
+    public S3Details uploadFile(MultipartFile file, String groupId, String userId) throws IOException {
 
         Map<String, String> tags = getResourceTags(file);
 
@@ -49,38 +67,35 @@ public class ResourceS3Service {
         
         String objectKey = groupId + "/" + userId + "/" + fileName;
 
-        try {
+        PutObjectRequest putRequest = PutObjectRequest.builder()
+                .bucket(mainBucketName)
+                .key(objectKey)
+                .contentType(file.getContentType())
+                .contentLength(file.getSize())  
+                .tagging(buildTagString(tags))
+                .build();
 
-            PutObjectRequest putRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(objectKey)
-                    .contentType(file.getContentType())
-                    .contentLength(file.getSize())  
-                    .tagging(buildTagString(tags))
-                    .build();
+        PutObjectResponse response = s3Client.putObject(
+                putRequest,
+                RequestBody.fromInputStream(
+                        file.getInputStream(),
+                        file.getSize()));
 
-            PutObjectResponse response = s3Client.putObject(
-                    putRequest,
-                    RequestBody.fromInputStream(
-                            file.getInputStream(),
-                            file.getSize()));
-
-            return S3Details.builder()
-                    .bucketName(bucketName)
-                    .fileName(fileName)
-                    .contentType(file.getContentType())
-                    .size(file.getSize())
-                    .tags(tags)
-                    .url("https://" + bucketName + ".s3.amazonaws.com/" + objectKey)
-                    .versionId(response.versionId())
-                    .build();
-
-        } catch (IOException e) {
-        	
-            throw new RuntimeException("Failed to upload file to S3", e);
-        }
+        return S3Details.builder()
+                .bucketName(mainBucketName)
+                .fileName(fileName)
+                .contentType(file.getContentType())
+                .size(file.getSize())
+                .tags(tags)
+                .url("https://" + mainBucketName + ".s3.amazonaws.com/" + objectKey)
+                .versionId(response.versionId())
+                .build();
     }
     
+    @Retryable(
+    	retryFor = { SdkException.class, IOException.class },
+    	maxAttempts = 3,
+    	backoff = @Backoff(delay = 1000, multiplier = 2.0))
     public PresignedResourceResponse generatePresignedUrl(Resource resource, @Nullable Long expirySeconds) {
 
         long effectiveExpiry = (expirySeconds == null || expirySeconds <= 0) ? 600L : expirySeconds;
@@ -88,7 +103,7 @@ public class ResourceS3Service {
         String objectKey = resource.getGroup().getId() + "/" + resource.getUser().getId() + "/" + resource.getS3Details().getFileName();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
+                .bucket(mainBucketName)
                 .key(objectKey)
                 .build();
 
@@ -102,7 +117,7 @@ public class ResourceS3Service {
 
         HeadObjectResponse headObject =
                 s3Client.headObject(HeadObjectRequest.builder()
-                        .bucket(bucketName)
+                        .bucket(mainBucketName)
                         .key(objectKey)
                         .build());
 
@@ -110,7 +125,7 @@ public class ResourceS3Service {
 
         Map<String, String> tags =
                 s3Client.getObjectTagging(GetObjectTaggingRequest.builder()
-                        .bucket(bucketName)
+                        .bucket(mainBucketName)
                         .key(objectKey)
                         .build())
                 .tagSet()
@@ -134,13 +149,30 @@ public class ResourceS3Service {
 
     }
 
+    @Recover
+    public PresignedResourceResponse recoverGeneratePresignedUrl(Exception e, Resource resource, @Nullable Long expirySeconds) {
+    	
+        throw new S3Exception("Failed to generate presigned URL after retries for resource " + resource.getId());
+    }
+    
+    @Recover
+    public S3Details recoverUploadFile(Exception e, MultipartFile file, String groupId, String userId) {
+    	
+        throw new S3Exception("Failed to upload file after retries for file " + file.getOriginalFilename());
+    }
+
+    @Retryable(
+    	retryFor = { SdkException.class, IOException.class },
+    	maxAttempts = 3,
+    	backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     public void markObjectAsDeleted(Resource resource) {
 
         String objectKey = resource.getGroup().getId() + "/" + resource.getUser().getId() + "/" + resource.getS3Details().getFileName();
 
         Map<String, String> existingTags =
                 s3Client.getObjectTagging(GetObjectTaggingRequest.builder()
-                        .bucket(bucketName)
+                        .bucket(mainBucketName)
                         .key(objectKey)
                         .build())
                 .tagSet()
@@ -159,12 +191,46 @@ public class ResourceS3Service {
                 .toList();
 
         s3Client.putObjectTagging(builder -> builder
-                .bucket(bucketName)
+                .bucket(mainBucketName)
                 .key(objectKey)
                 .tagging(tagging -> tagging.tagSet(tagSet)));
     }
-
     
+    @Retryable(retryFor = { SdkException.class, IOException.class },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2.0))
+    public S3Details moveToDeletedBucket(Resource resource) {
+
+        String objectKey = resource.getGroup().getId() + "/" + resource.getUser().getId() + "/" + resource.getS3Details().getFileName();
+
+        log.info("Starting S3 move for resource {}", resource.getId());
+
+        s3Client.copyObject(CopyObjectRequest.builder()
+                .sourceBucket(mainBucketName)
+                .sourceKey(objectKey)
+                .destinationBucket(deletedBucketName)
+                .destinationKey(objectKey)
+                .build());
+
+        log.info("Resource {} copied to deleted bucket", resource.getId());
+
+        s3Client.deleteObject(DeleteObjectRequest.builder()
+                .bucket(mainBucketName)
+                .key(objectKey)
+                .build());
+
+        log.info("Resource {} deleted from main bucket", resource.getId());
+        
+        return S3Details.builder()
+                .bucketName(deletedBucketName)
+                .fileName(resource.getS3Details().getFileName())
+                .contentType(resource.getS3Details().getContentType())
+                .size(resource.getS3Details().getSize())
+                .url("https://" + deletedBucketName + ".s3.amazonaws.com/" + objectKey)
+                .versionId(resource.getS3Details().getVersionId())
+                .tags(resource.getS3Details().getTags())
+                .build();
+    }
 
     private Map<String, String> getResourceTags(MultipartFile file) {
     	

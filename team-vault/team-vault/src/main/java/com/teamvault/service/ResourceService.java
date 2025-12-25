@@ -1,10 +1,10 @@
 package com.teamvault.service;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,6 +19,7 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.SortDirection;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
+import com.teamvault.exception.S3Exception;
 import com.teamvault.mapper.ResourceMapper;
 import com.teamvault.query.processor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceRepository;
@@ -53,7 +54,14 @@ public class ResourceService {
 		
 		Resource resource = ResourceMapper.resourceUploadRequestToGroupMember(resourceUploadRequest, groupGroupMemeber);
 		
-		resource.setS3Details(resourceS3Service.uploadFile(file, resource.getGroup().getId(), currentUserId));
+		try {
+			
+			resource.setS3Details(resourceS3Service.uploadFile(file, resource.getGroup().getId(), currentUserId));
+			
+	    } catch (IOException e) {
+	    	
+	        throw new S3Exception("Failed to upload resource to S3");
+	    }
 		
 		resourceRepository.save(resource);
 				
