@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.teamvault.entity.UserRoleChangeLog;
+import com.teamvault.entity.log.UserRoleChangeLog;
 import com.teamvault.event.model.UserRoleChangeEvent;
 import com.teamvault.repository.UserRoleChangeLogRepository;
 

@@ -1,12 +1,13 @@
 package com.teamvault.query.processor;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +16,19 @@ import com.teamvault.entity.Resource;
 import com.teamvault.enums.ResourceSortField;
 import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.SortDirection;
+import com.teamvault.exception.InvalidActionException;
+import com.teamvault.exception.ResourceNotFoundException;
+import com.teamvault.fields.CacheNames;
 import com.teamvault.fields.ResourceFields;
+import com.teamvault.repository.ResourceRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class ResourceQueryProcessor {
+	
+	private final ResourceRepository resourceRepository;
 
 	private final MongoTemplate mongoTemplate;
 
@@ -75,5 +82,23 @@ public class ResourceQueryProcessor {
 	            .and(ResourceFields.USER_ID).is(userId);
 	}
 
-
+	@Cacheable(value = CacheNames.RESOURCE, key = "#resourceId")
+	public Resource getResourceOrThrow(String resourceId) {
+		
+		Optional<Resource> resourceDoc = resourceRepository.findById(resourceId);
+		
+		if(resourceDoc.isEmpty()) {
+			
+			 throw new ResourceNotFoundException("Resource", resourceId);
+		}
+		
+		Resource resource = resourceDoc.get();
+		
+		if(resource.isDeleted()) {
+			
+			throw new InvalidActionException("Deleted Resource :" + resource.getId());
+		}
+		
+		return resource;
+	}
 }

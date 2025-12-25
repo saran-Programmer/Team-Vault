@@ -4,7 +4,7 @@ import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
 import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
-import com.teamvault.entity.GroupMemberLog;
+import com.teamvault.entity.log.GroupMemberLog;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -2,7 +2,7 @@ package com.teamvault.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import com.teamvault.entity.GroupMemberLog;
+import com.teamvault.entity.log.GroupMemberLog;
 
 public interface GroupMemberLogRepository extends MongoRepository<GroupMemberLog, String> {
 

@@ -7,7 +7,7 @@ import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.MembershipActionResponse;
 import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
-import com.teamvault.entity.GroupMemberLog;
+import com.teamvault.entity.log.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;

@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +22,7 @@ import com.teamvault.enums.SortDirection;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.exception.S3Exception;
+import com.teamvault.fields.CacheNames;
 import com.teamvault.mapper.ResourceMapper;
 import com.teamvault.query.processor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceRepository;
@@ -70,14 +73,15 @@ public class ResourceService {
 
 	public PresignedResourceResponse viewGroupResources(String resourceId) {
 		
-		Resource resource = getResourceOrThrow(resourceId);
+		Resource resource = resourceQueryProcessor.getResourceOrThrow(resourceId);
 		
 		return resourceS3Service.generatePresignedUrl(resource, PRESIGNED_URL_EXPIRY_SECONDS);
 	}
 	
+	@CacheEvict(value = CacheNames.RESOURCE, key = "#resourceId")
 	public void deleteResourceById(String resourceId) {
 
-		Resource resource = getResourceOrThrow(resourceId);
+		Resource resource = resourceQueryProcessor.getResourceOrThrow(resourceId);
 		
 		resourceS3Service.markObjectAsDeleted(resource);
 		
@@ -88,25 +92,6 @@ public class ResourceService {
 		resourceRepository.save(resource);
 	}
 	
-	public Resource getResourceOrThrow(String resourceId) {
-		
-		Optional<Resource> resourceDoc = resourceRepository.findById(resourceId);
-		
-		if(resourceDoc.isEmpty()) {
-			
-			 throw new ResourceNotFoundException("Resource", resourceId);
-		}
-		
-		Resource resource = resourceDoc.get();
-		
-		if(resource.isDeleted()) {
-			
-			throw new InvalidActionException("Deleted Resource :" + resource.getId());
-		}
-		
-		return resource;
-	}
-
 	public List<ResourceResponse> listResourcesDTO(String groupMemberId, ResourceVisiblity resourceVisiblity, 
 			ResourceSortField resourceSortField, SortDirection sortDirection,int offset, int limit) {
 		

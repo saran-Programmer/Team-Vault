@@ -19,7 +19,7 @@ import com.teamvault.DTO.PermissionUpdateResponse;
 import com.teamvault.DTO.UserActiveGroupDTO;
 import com.teamvault.entity.Group;
 import com.teamvault.entity.GroupMember;
-import com.teamvault.entity.GroupMemberLog;
+import com.teamvault.entity.log.GroupMemberLog;
 import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;

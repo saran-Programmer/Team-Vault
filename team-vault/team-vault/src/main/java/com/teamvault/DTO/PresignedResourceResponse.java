@@ -5,11 +5,15 @@ import java.util.Map;
 
 import com.teamvault.enums.ResourceVisiblity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder 
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PresignedResourceResponse {
 	
 	private String resourceId;
