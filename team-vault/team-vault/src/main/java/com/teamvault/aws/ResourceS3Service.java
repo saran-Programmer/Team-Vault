@@ -47,10 +47,10 @@ public class ResourceS3Service {
     
     private final S3Presigner s3Presigner;
 
-    @Value("${aws.resource-bucket-name}")
+    @Value("${aws.s3.resource-bucket}")
     private String mainBucketName;
 
-    @Value("${aws.deleted-resource-bucket-name}")
+    @Value("${aws.s3.deleted-resource-bucket}")
     private String deletedBucketName;
     
 
