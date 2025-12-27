@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.teamvault.DTO.ResourceUploadRequest;
 import com.teamvault.DTO.PresignedResourceResponse;
 import com.teamvault.DTO.ResourceResponse;
+import com.teamvault.DTO.ResourceUpdateRequest;
 import com.teamvault.aws.ResourceS3Service;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.Resource;
@@ -102,5 +104,33 @@ public class ResourceService {
 		String groupId = groupMember.getGroup().getId();
 
 		return resourceQueryProcessor.listResourcesDTO(userId, groupId, resourceVisiblity, resourceSortField, sortDirection, offset, limit);
+	}
+
+	@CachePut(value = CacheName.RESOURCE, key = "#resourceId")
+	public void patchResourceById(String resourceId, ResourceUpdateRequest request) {
+		
+		Resource resource = resourceQueryProcessor.getResourceOrThrow(resourceId);
+		
+		boolean isUpdated = false;
+		
+		if(request.getResourceTitle() != null && !request.getResourceTitle().isEmpty()) {
+			
+			resource.getResourceDetails().setTitle(request.getResourceTitle());
+			isUpdated = true;
+		}
+		
+		if(request.getResourceDescription() != null) {
+			
+			resource.getResourceDetails().setTitle(request.getResourceTitle());
+			isUpdated = true;
+		}
+		
+		if(request.getResourceVisiblity() != null) {
+			
+			resource.setResourceVisiblity(request.getResourceVisiblity());
+			isUpdated = true;
+		}
+		
+		if(isUpdated) resourceRepository.save(resource);
 	}
 }
