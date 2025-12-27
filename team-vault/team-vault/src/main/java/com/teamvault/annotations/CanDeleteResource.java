@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@groupSecurity.canDeleteResource(#resourceId)")
+@PreAuthorize("@accessControlService.canDeleteResource(#resourceId)")
 public @interface CanDeleteResource {
 
 }

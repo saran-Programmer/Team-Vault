@@ -169,7 +169,7 @@ public class GroupMemberService {
 	
 	public GroupMember getActiveGroupMemberOrThrow(String groupMemberId) {
 		
-		Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId).filter(gm -> !gm.isGroupDeleted());
+		Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
 		
 		if(groupMemberDoc.isEmpty()) {
 			

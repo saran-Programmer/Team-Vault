@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@groupSecurity.canInviteUser(#groupId)")
+@PreAuthorize("@accessControlService.canInviteUser(#groupId)")
 public @interface CanInviteUser {
 
 }

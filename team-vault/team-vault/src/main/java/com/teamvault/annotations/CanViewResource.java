@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PostAuthorize;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PostAuthorize("@groupSecurity.canViewResource(returnObject.body)")
+@PostAuthorize("@accessControlService.canViewResource(returnObject.body)")
 public @interface CanViewResource {
 
 }

@@ -17,9 +17,9 @@ import com.teamvault.repository.ResourceRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@Component("groupSecurity")
+@Component("accessControlService")
 @RequiredArgsConstructor
-public class GroupSecurity {
+public class AccessControlService {
 
     private final GroupMemberRepository groupMemberRepository;
     
