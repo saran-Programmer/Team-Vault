@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.teamvault.fields.CacheNames;
+import com.teamvault.fields.CacheName;
 
 @Configuration
 @EnableCaching
@@ -59,8 +59,8 @@ public class CacheConfig {
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
 
         Map<String, RedisCacheConfiguration> cacheConfigs = new HashMap<>();
-        cacheConfigs.put(CacheNames.GROUP_MEMBER, baseConfig.entryTtl(Duration.ofSeconds(groupMemberTtl)));
-        cacheConfigs.put(CacheNames.RESOURCE, baseConfig.entryTtl(Duration.ofSeconds(resourceTtl)));
+        cacheConfigs.put(CacheName.GROUP_MEMBER, baseConfig.entryTtl(Duration.ofSeconds(groupMemberTtl)));
+        cacheConfigs.put(CacheName.RESOURCE, baseConfig.entryTtl(Duration.ofSeconds(resourceTtl)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .withInitialCacheConfigurations(cacheConfigs)

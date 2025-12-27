@@ -1,7 +1,9 @@
 package com.teamvault.query.processor;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -18,15 +20,19 @@ import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.SortDirection;
 import com.teamvault.enums.UserRole;
+import com.teamvault.fields.CacheName;
 import com.teamvault.fields.GroupFields;
 import com.teamvault.fields.GroupMemberFields;
 import com.teamvault.fields.UserFields;
+import com.teamvault.repository.GroupMemberRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class GroupMemberQueryProcessor {
+	
+	private final GroupMemberRepository groupMemberRepository;
 
 	private final MongoTemplate mongoTemplate;
 	
@@ -104,4 +110,15 @@ public class GroupMemberQueryProcessor {
 	    return mongoTemplate.aggregate(aggregation, GroupMember.class, UserActiveGroupDTO.class)
 	            .getMappedResults();
 	}
+	
+    @Cacheable(cacheNames = CacheName.GROUP_MEMBER, key = "#groupMemberId")
+	public Optional<GroupMember> getGroupMemberById(String groupMemberId) {
+		
+		return groupMemberRepository.findById(groupMemberId);
+	}
+    
+    public Optional<GroupMember> getByUserIdAndGroupId(String userId, String groupId) {
+    	
+    	return groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId);
+    }
 }

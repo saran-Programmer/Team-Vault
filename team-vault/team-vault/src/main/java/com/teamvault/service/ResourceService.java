@@ -22,7 +22,7 @@ import com.teamvault.enums.SortDirection;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.exception.S3Exception;
-import com.teamvault.fields.CacheNames;
+import com.teamvault.fields.CacheName;
 import com.teamvault.mapper.ResourceMapper;
 import com.teamvault.query.processor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceRepository;
@@ -78,7 +78,7 @@ public class ResourceService {
 		return resourceS3Service.generatePresignedUrl(resource, PRESIGNED_URL_EXPIRY_SECONDS);
 	}
 	
-	@CacheEvict(value = CacheNames.RESOURCE, key = "#resourceId")
+	@CacheEvict(value = CacheName.RESOURCE, key = "#resourceId")
 	public void deleteResourceById(String resourceId) {
 
 		Resource resource = resourceQueryProcessor.getResourceOrThrow(resourceId);

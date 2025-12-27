@@ -62,7 +62,7 @@ public class GroupMemberService {
 
 	    String currentUserId = SecurityUtil.getCurrentUser().getUserId();
 
-	    GroupMember groupMember = groupMemberRepository.findByUser_IdAndGroup_Id(request.getTargetUserId(), groupId)
+	    GroupMember groupMember = groupMemberQueryProcessor.getByUserIdAndGroupId(request.getTargetUserId(), groupId)
 	    	.map(existing -> {
 
 	                if (existing.getMembershipStatus() == MembershipStatus.ACTIVE) {
@@ -129,7 +129,7 @@ public class GroupMemberService {
 
 	public PermissionUpdateResponse updateUserPermission(String groupMemberId, @Valid PermissionUpdateRequest request) {
 		
-		Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
+		Optional<GroupMember> groupMemberDoc = groupMemberQueryProcessor.getGroupMemberById(groupMemberId);
 		
 		if(groupMemberDoc.isEmpty()) {
 			
@@ -169,7 +169,7 @@ public class GroupMemberService {
 	
 	public GroupMember getActiveGroupMemberOrThrow(String groupMemberId) {
 		
-		Optional<GroupMember> groupMemberDoc = groupMemberRepository.findById(groupMemberId);
+		Optional<GroupMember> groupMemberDoc = groupMemberQueryProcessor.getGroupMemberById(groupMemberId);
 		
 		if(groupMemberDoc.isEmpty()) {
 			

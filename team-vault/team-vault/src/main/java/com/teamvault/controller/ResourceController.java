@@ -24,6 +24,7 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.SortDirection;
 import com.teamvault.service.ResourceService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -43,7 +44,7 @@ public class ResourceController {
 	@CanUploadResource
 	@PostMapping(value = "/{groupMemberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<?> addNewResourceToGroup(@PathVariable String groupMemberId,
-		        @ModelAttribute ResourceUploadRequest request,
+		        @ModelAttribute @Valid ResourceUploadRequest request,
 		        @RequestPart("file") MultipartFile file) {
 		
 		return ResponseEntity.accepted().body(resourceService.addNewResourceToGroup(groupMemberId, request, file));

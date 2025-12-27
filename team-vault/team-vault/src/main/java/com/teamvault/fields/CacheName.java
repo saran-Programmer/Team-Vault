@@ -1,8 +1,8 @@
 package com.teamvault.fields;
 
-public class CacheNames {
+public class CacheName {
 
-	private CacheNames() {}
+	private CacheName() {}
 	
 	public static final String GROUP_MEMBER = "group_member";
 	

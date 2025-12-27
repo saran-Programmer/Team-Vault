@@ -49,7 +49,7 @@ public class Resource {
 	private Instant deletedAt;
 	
 	@Builder.Default
-	private ResourceDeletionStatus deletionStatus = ResourceDeletionStatus.ACTIVE;
+	private ResourceDeletionStatus deletionStatus = ResourceDeletionStatus.NA;
 	
 	private Instant resourceMoveAt;
 	

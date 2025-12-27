@@ -18,7 +18,7 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.SortDirection;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
-import com.teamvault.fields.CacheNames;
+import com.teamvault.fields.CacheName;
 import com.teamvault.fields.ResourceFields;
 import com.teamvault.repository.ResourceRepository;
 
@@ -82,7 +82,7 @@ public class ResourceQueryProcessor {
 	            .and(ResourceFields.USER_ID).is(userId);
 	}
 
-	@Cacheable(value = CacheNames.RESOURCE, key = "#resourceId")
+	@Cacheable(value = CacheName.RESOURCE, key = "#resourceId")
 	public Resource getResourceOrThrow(String resourceId) {
 		
 		Optional<Resource> resourceDoc = resourceRepository.findById(resourceId);
@@ -100,5 +100,10 @@ public class ResourceQueryProcessor {
 		}
 		
 		return resource;
+	}
+	
+	public Optional<Resource> getResourceById(String resourceId) {
+		
+		return resourceRepository.findById(resourceId);
 	}
 }

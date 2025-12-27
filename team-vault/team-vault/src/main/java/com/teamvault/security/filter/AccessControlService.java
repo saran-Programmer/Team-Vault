@@ -12,8 +12,8 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.enums.UserRole;
 import com.teamvault.models.CustomPrincipal;
-import com.teamvault.repository.GroupMemberRepository;
-import com.teamvault.repository.ResourceRepository;
+import com.teamvault.query.processor.GroupMemberQueryProcessor;
+import com.teamvault.query.processor.ResourceQueryProcessor;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,9 +21,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AccessControlService {
 
-    private final GroupMemberRepository groupMemberRepository;
+    private final GroupMemberQueryProcessor groupMemberQueryProcessor;
     
-    private final ResourceRepository resourceRepository;
+    private final ResourceQueryProcessor resourceQueryProcessor;
     
     private boolean hasPermission(String groupMemberId, UserGroupPermission permission) {
     	
@@ -33,7 +33,7 @@ public class AccessControlService {
 
         if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
 
-        return groupMemberRepository.findById(groupMemberId)
+        return groupMemberQueryProcessor.getGroupMemberById(groupMemberId)
                 .filter(member ->
                 		member.getUser().getId().equals(currentUser.getUserId()) && 
                         member.getMembershipStatus() == MembershipStatus.ACTIVE &&
@@ -52,7 +52,7 @@ public class AccessControlService {
 
         if (!hasRole(currentUser, UserRole.ADMIN)) return false;
 
-        return groupMemberRepository.findByUser_IdAndGroup_Id(currentUser.getUserId(), groupId)
+        return groupMemberQueryProcessor.getByUserIdAndGroupId(currentUser.getUserId(), groupId)
                 .filter(member ->
                         member.getMembershipStatus() == MembershipStatus.ACTIVE &&
                         !member.isGroupDeleted() &&
@@ -92,7 +92,7 @@ public class AccessControlService {
             return resource.getResourceOwnerId().equals(currentUserId);
         }
 
-        return groupMemberRepository.findById(resource.getGroupMemberId())
+        return groupMemberQueryProcessor.getGroupMemberById(resource.getGroupMemberId())
                 .filter(member ->  member.getUser().getId().equals(currentUser.getUserId()) && 
 		                member.getMembershipStatus() == MembershipStatus.ACTIVE &&
                         !member.isGroupDeleted() 
@@ -105,7 +105,7 @@ public class AccessControlService {
         
         if (currentUser == null) return false;
         
-        Optional<Resource> resourceDoc = resourceRepository.findById(resourceId);
+        Optional<Resource> resourceDoc = resourceQueryProcessor.getResourceById(resourceId);
         
         if(resourceDoc.isEmpty()) return false;
         
