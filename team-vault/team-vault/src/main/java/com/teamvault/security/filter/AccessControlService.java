@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.teamvault.DTO.PresignedResourceResponse;
+import com.teamvault.entity.GroupMember;
 import com.teamvault.entity.Resource;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.ResourceVisiblity;
@@ -99,7 +100,7 @@ public class AccessControlService {
                         && member.getUserPermissions().contains(UserGroupPermission.READ_RESOURCE)).isPresent();
     }
     
-    public boolean canDeleteResource(String resourceId) {
+    public boolean canModifyResource(String resourceId) {
     	
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
@@ -113,7 +114,27 @@ public class AccessControlService {
         
         return resource.getUser().getId().equals(currentUser.getUserId());
     }
+    
+	public boolean canInteractWithResource(String resourceId) {
+		
+        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
+		
+        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
 
+		Resource resource = resourceQueryProcessor.getResourceOrThrow(resourceId);
+
+		String groupId = resource.getGroup().getId();
+
+		String userId = currentUser.getUserId();
+
+		GroupMember groupMember = groupMemberQueryProcessor.getByUserIdAndGroupId(userId, groupId)
+				.filter(member -> member.getMembershipStatus() == MembershipStatus.ACTIVE && !member.isGroupDeleted())
+				.orElse(null);
+
+		if (groupMember == null) return false;
+
+		return groupMember.getUserPermissions().contains(UserGroupPermission.WRITE_RESOURCE);
+	}
 
     private boolean hasRole(CustomPrincipal principal, UserRole role) {
         return principal.getAuthorities().stream()

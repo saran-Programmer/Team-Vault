@@ -3,6 +3,7 @@ package com.teamvault.query.processor;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -106,4 +107,13 @@ public class ResourceQueryProcessor {
 		
 		return resourceRepository.findById(resourceId);
 	}
+	
+	
+	// This should be used only with resource engagement to update the resource cache
+	@CachePut(value = CacheName.RESOURCE, key = "#result.id")
+	public Resource saveUpdatedResource(Resource resource) {
+		
+	    return resourceRepository.save(resource); // result is returned, SpEL uses #result
+	}
+
 }

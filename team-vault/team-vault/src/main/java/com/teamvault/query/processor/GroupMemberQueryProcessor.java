@@ -117,6 +117,7 @@ public class GroupMemberQueryProcessor {
 		return groupMemberRepository.findById(groupMemberId);
 	}
     
+    @Cacheable(cacheNames = CacheName.GROUP_MEMBER, key = "'member_' + #userId + '_' + #groupId")
     public Optional<GroupMember> getByUserIdAndGroupId(String userId, String groupId) {
     	
     	return groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId);

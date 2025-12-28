@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@groupSecurity.canModifyResource(#resourceId)")
-public @interface CanModifyResource {
+@PreAuthorize("@accessControlService.canInteractWithResource(#resourceId)")
+public @interface CanInteractWithResource {
 
 }

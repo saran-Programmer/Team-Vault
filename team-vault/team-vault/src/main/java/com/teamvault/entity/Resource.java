@@ -39,14 +39,14 @@ public class Resource {
 	
 	private ResourceVisiblity resourceVisiblity;
 	
-	@Builder.Default
-	private ResourceMetaVO resourceMeta = new ResourceMetaVO();
-	
 	private boolean isDeleted;
 	
 	private S3Details s3Details;
 	
 	private Instant deletedAt;
+	
+	@Builder.Default
+	private ResourceMetaVO resourceMeta = new ResourceMetaVO();
 	
 	@Builder.Default
 	private ResourceDeletionStatus deletionStatus = ResourceDeletionStatus.NA;

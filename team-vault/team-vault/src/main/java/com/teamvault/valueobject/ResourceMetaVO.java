@@ -18,4 +18,6 @@ public class ResourceMetaVO {
 	private int noComments;
 	
 	private double avgRating;
+	
+	private int noUsersRated;
 }
