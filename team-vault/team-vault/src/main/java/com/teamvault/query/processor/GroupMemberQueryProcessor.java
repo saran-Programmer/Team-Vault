@@ -122,4 +122,9 @@ public class GroupMemberQueryProcessor {
     	
     	return groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId);
     }
+    
+    public GroupMember saveUpdatedGroupMember(GroupMember groupMember) {
+    	
+    	return groupMemberRepository.save(groupMember);
+    }
 }

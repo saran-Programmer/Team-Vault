@@ -4,7 +4,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.teamvault.entity.log.GroupMemberLog;
-import com.teamvault.event.model.GroupMemberEvent;
 import com.teamvault.repository.GroupMemberLogRepository;
 
 import lombok.RequiredArgsConstructor;

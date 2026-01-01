@@ -1,7 +1,5 @@
 package com.teamvault.service;
 
-import java.util.Optional;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.teamvault.DTO.AuthResponse;
@@ -30,7 +28,7 @@ public class AuthService {
         
         String identifier = request.getUserName() != null ? request.getUserName() : request.getEmailAddress();
         
-        User user = userRepository.findByUserNameOrEmail(identifier, identifier)
+        User user = userRepository.findFirstByCredentials_UserNameOrCredentials_Email(identifier, identifier)
         		.orElseThrow(() -> new InvalidCredentialsException("Invalid username / email or password."));
      
         boolean isPasswordMatch = passwordEncoder.matches(
@@ -52,12 +50,12 @@ public class AuthService {
     public AuthResponse signup(SignUpRequest request) {
         User user = UserMapper.toUserEntity(request);
         
-        Optional<User> existing = userRepository.findByUserNameOrEmail(
+        boolean userConflicting = userRepository.existsByCredentials_UserNameOrCredentials_Email(
             user.getCredentials().getUserName(),
             user.getCredentials().getEmail()
         );
         
-        if (existing.isPresent()) {
+        if (userConflicting) {
         	
             throw new UserExistsException("Registration failed: Username or email address is already in use.");
         }

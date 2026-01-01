@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.GroupInviteRequest;
@@ -165,6 +166,16 @@ public class GroupMemberService {
 		UserRole userRole = SecurityUtil.getCurrentUserRole();
 		
 		return groupMemberQueryProcessor.getUserActiveGroup(currentUserId, userRole, offset, limit, sortBy, sortDirection);
+	}
+	
+	public void removeGroupMember(String groupMemberId) {
+		
+		GroupMember groupMember = groupMemberQueryProcessor.getGroupMemberById(groupMemberId)
+				.orElseThrow(() ->  new ResourceNotFoundException("Group Member not found", groupMemberId));
+		
+		groupMember.setMembershipStatus(MembershipStatus.REMOVED);
+
+		groupMemberQueryProcessor.saveUpdatedGroupMember(groupMember);
 	}
 	
 	public GroupMember getActiveGroupMemberOrThrow(String groupMemberId) {

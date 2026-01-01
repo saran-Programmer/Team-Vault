@@ -1,6 +1,7 @@
 package com.teamvault.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import com.teamvault.DTO.GroupInviteRequest;
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.PermissionUpdateRequest;
 import com.teamvault.annotations.CanInviteUser;
+import com.teamvault.annotations.CanRemoveGroupMember;
 import com.teamvault.annotations.PermissionUpdateAllowed;
 import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
@@ -61,7 +63,6 @@ public class GroupMemberController {
 		return ResponseEntity.accepted().body(groupMemberService.updateUserPermission(groupMemberId, request));
 	}
 	
-	
 	@GetMapping("/me/active")
 	public ResponseEntity<?> getUserActiveGroup(@RequestParam(defaultValue = "0") int offset,
 	        @RequestParam(defaultValue = "10") int limit,
@@ -69,5 +70,14 @@ public class GroupMemberController {
 	        @RequestParam(defaultValue = SortDirection.DEFAULT) SortDirection sortDirection) {
 		
 		return ResponseEntity.ok(groupMemberService.getUserActiveGroup(offset, limit, sortBy, sortDirection));
+	}
+	
+	@CanRemoveGroupMember
+	@DeleteMapping("/{groupMemberId}/remove")
+    public ResponseEntity<?> removeGroupMember(@PathVariable String groupMemberId){
+		
+		groupMemberService.removeGroupMember(groupMemberId);
+		
+		return ResponseEntity.noContent().build();
 	}
 }

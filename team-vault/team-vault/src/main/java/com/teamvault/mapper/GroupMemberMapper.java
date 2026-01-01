@@ -125,4 +125,23 @@ public class GroupMemberMapper {
     			.newPermissions(groupMember.getUserPermissions())
     			.build();
     }
+    
+    public static GroupMemberLog getRemoveGroupMemberLog(GroupMember groupMember) {
+    	
+    	GroupMemberVO groupMemberVO = GroupMemberVO.builder().id(groupMember.getId()).build();
+    	
+    	String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+    	
+    	return GroupMemberLog.builder()
+    			.user(groupMember.getUser())
+    			.group(groupMember.getGroup())
+    			.groupMember(groupMemberVO)
+    			.event(GroupMemberEventType.MEMBER_REMOVED)
+    			.actedBy(UserVO.builder().id(currentUserId).build())
+    			.fromStatus(groupMember.getMembershipStatus())
+    			.toStatus(groupMember.getMembershipStatus())
+    			.oldPermissions(groupMember.getUserPermissions())
+    			.newPermissions(groupMember.getUserPermissions())
+    			.build();
+    }
 }

@@ -51,8 +51,6 @@ public class AccessControlService {
 
         if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
 
-        if (!hasRole(currentUser, UserRole.ADMIN)) return false;
-
         return groupMemberQueryProcessor.getByUserIdAndGroupId(currentUser.getUserId(), groupId)
                 .filter(member ->
                         member.getMembershipStatus() == MembershipStatus.ACTIVE &&
@@ -74,6 +72,25 @@ public class AccessControlService {
     public boolean canAccessGroupResources(String groupMemberId) {
     	
         return hasPermission(groupMemberId, UserGroupPermission.READ_RESOURCE);
+    }
+    
+    public boolean canRemoveGroupMember(String groupMemberId) {
+    	
+    	 Optional<GroupMember> groupMemberOptional = groupMemberQueryProcessor.getGroupMemberById(groupMemberId);
+    	 
+    	 if(groupMemberOptional.isEmpty()) return false;
+    	 
+    	 GroupMember groupMember = groupMemberOptional.get();
+    	 
+    	 String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+    	 
+    	 String groupId = groupMember.getGroup().getId();
+    
+    	 return groupMemberQueryProcessor.getByUserIdAndGroupId(currentUserId, groupId)
+				    	 .filter(member ->
+				         member.getMembershipStatus() == MembershipStatus.ACTIVE &&
+				         !member.isGroupDeleted() && member.getUserPermissions().contains(UserGroupPermission.INVITE_USER)
+				).isPresent();
     }
     
     public boolean canViewResource(PresignedResourceResponse resource) {
