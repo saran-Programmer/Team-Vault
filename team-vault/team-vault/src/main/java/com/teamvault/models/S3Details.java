@@ -15,8 +15,6 @@ public class S3Details {
 
 	private String bucketName;
 	
-	private String contentType;
-	
 	private String fileName;
 	
 	private long size;
@@ -24,6 +22,4 @@ public class S3Details {
 	private Map<String, String> tags;
 	 
 	private String url; 
-	
-	private String versionId;
 }

@@ -113,7 +113,7 @@ public class ResourceQueryProcessor {
 	@CachePut(value = CacheName.RESOURCE, key = "#result.id")
 	public Resource saveUpdatedResource(Resource resource) {
 		
-	    return resourceRepository.save(resource); // result is returned, SpEL uses #result
+	    return resourceRepository.save(resource);
 	}
 
 }

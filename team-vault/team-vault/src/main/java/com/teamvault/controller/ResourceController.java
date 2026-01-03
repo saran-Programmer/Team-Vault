@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.teamvault.DTO.PresignedResourceResponse;
 import com.teamvault.DTO.ResourceUpdateRequest;
 import com.teamvault.DTO.ResourceUploadRequest;
+import com.teamvault.DTO.UploadProgressResponse;
 import com.teamvault.annotations.CanModifyResource;
 import com.teamvault.annotations.CanUploadResource;
 import com.teamvault.annotations.CanViewGroupResources;
@@ -51,6 +52,14 @@ public class ResourceController {
 		        @RequestPart("file") MultipartFile file) {
 		
 		return ResponseEntity.accepted().body(resourceService.addNewResourceToGroup(groupMemberId, request, file));
+	}
+	
+	@GetMapping("/upload-progress")
+	public ResponseEntity<?> getResourceProgressStatus(@RequestParam String objectId) {
+		
+		UploadProgressResponse uploadProgressResponse = resourceService.getResourceProgressStatus(objectId);
+		
+		return ResponseEntity.accepted().body(uploadProgressResponse);
 	}
 	
 	@CanModifyResource

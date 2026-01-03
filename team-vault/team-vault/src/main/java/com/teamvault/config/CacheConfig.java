@@ -30,6 +30,9 @@ public class CacheConfig {
 
     @Value("${redis.cache.ttl.resource}")
     private long resourceTtl;
+    
+    @Value("${redis.cache.ttl.resource-progress}")
+    private long resourceProgressTtl;
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
@@ -61,6 +64,7 @@ public class CacheConfig {
         Map<String, RedisCacheConfiguration> cacheConfigs = new HashMap<>();
         cacheConfigs.put(CacheName.GROUP_MEMBER, baseConfig.entryTtl(Duration.ofSeconds(groupMemberTtl)));
         cacheConfigs.put(CacheName.RESOURCE, baseConfig.entryTtl(Duration.ofSeconds(resourceTtl)));
+        cacheConfigs.put(CacheName.RESOURCE_PROGRESS, baseConfig.entryTtl(Duration.ofSeconds(resourceProgressTtl)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .withInitialCacheConfigurations(cacheConfigs)
