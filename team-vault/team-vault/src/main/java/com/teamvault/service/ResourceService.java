@@ -97,10 +97,12 @@ public class ResourceService {
 	}
 	
 	public S3Details directS3Upload( MultipartFile file, String groupId, String currentUserId, String cachePath) throws IOException {
-				
+						
+		S3Details s3Details = resourceS3Service.uploadFile(file, groupId, currentUserId);
+		
 		uploadProgressService.updateUploadProgress(cachePath, 100.0);
 		
-		return resourceS3Service.uploadFile(file, groupId, currentUserId);
+		return s3Details;
 	}
 	
 	public S3Details chunkedFileUpload(GroupMember groupMember, MultipartFile file, @Valid ResourceUploadRequest request, String cachePath) {
