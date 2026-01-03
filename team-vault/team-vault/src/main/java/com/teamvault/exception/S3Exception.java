@@ -11,7 +11,7 @@ public class S3Exception extends RuntimeException {
 		super(message);
 	}
 	
-    public static String getErrorType() {
+    public String getErrorType() {
     	
         return EXCEPTIONTYPE;
     }

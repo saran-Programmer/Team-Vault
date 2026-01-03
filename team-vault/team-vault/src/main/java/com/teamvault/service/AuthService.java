@@ -10,6 +10,7 @@ import com.teamvault.enums.UserRole;
 import com.teamvault.exception.InvalidCredentialsException;
 import com.teamvault.exception.UserExistsException;
 import com.teamvault.mapper.UserMapper;
+import com.teamvault.query.processor.AuthQueryProcessor;
 import com.teamvault.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     
     private final JwtService jwtService;
+    
+    private final AuthQueryProcessor authQueryProcessor;
     
     public AuthResponse login(LoginRequest request) {
         
@@ -41,28 +44,25 @@ public class AuthService {
         	throw new InvalidCredentialsException("Invalid username / email or password.");
         }
         
-        
         String token = jwtService.generateToken(user);
         
         return AuthResponse.builder().token(token).build();
     }
 
     public AuthResponse signup(SignUpRequest request) {
+    	
         User user = UserMapper.toUserEntity(request);
-        
-        boolean userConflicting = userRepository.existsByCredentials_UserNameOrCredentials_Email(
-            user.getCredentials().getUserName(),
-            user.getCredentials().getEmail()
-        );
+
+        boolean userConflicting = authQueryProcessor.doesUserExists(request.getUsername(), request.getPrimaryEmail());
         
         if (userConflicting) {
         	
             throw new UserExistsException("Registration failed: Username or email address is already in use.");
         }
-        
+
         user.getCredentials().setPassword(passwordEncoder.encode(request.getPassword()));
         user.setUserRole(UserRole.USER);
-        
+
         User savedUser = userRepository.save(user);
         String token = jwtService.generateToken(savedUser);
         

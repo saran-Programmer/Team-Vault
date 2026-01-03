@@ -26,7 +26,7 @@ public class GlobalExceptionHandling {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
-                .errorType(UserExistsException.getErrorType())
+                .errorType(ex.getErrorType())
                 .timestamp(Instant.now())
                 .build();
 
@@ -41,7 +41,7 @@ public class GlobalExceptionHandling {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
-                .errorType(InvalidCredentialsException.getErrorType())
+                .errorType(ex.getErrorType())
                 .timestamp(Instant.now())
                 .build();
 
@@ -56,7 +56,7 @@ public class GlobalExceptionHandling {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
-                .errorType(TokenException.getErrorType())
+                .errorType(ex.getErrorType())
                 .timestamp(Instant.now())
                 .build();
 
@@ -92,7 +92,7 @@ public class GlobalExceptionHandling {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
-                .errorType(ResourceNotFoundException.getErrorType())
+                .errorType(ex.getErrorType())
                 .timestamp(Instant.now())
                 .build();
 
@@ -107,7 +107,7 @@ public class GlobalExceptionHandling {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
-                .errorType(InvalidActionException.getErrorType())
+                .errorType(ex.getErrorType())
                 .timestamp(Instant.now())
                 .build();
 
@@ -146,13 +146,13 @@ public class GlobalExceptionHandling {
     
     @ExceptionHandler(S3Exception.class)
     public ResponseEntity<ExceptionResponse> handleS3Exception(
-            Exception ex, HttpServletRequest request) {
+    		S3Exception ex, HttpServletRequest request) {
 
         ExceptionResponse body = ExceptionResponse.builder()
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .method(request.getMethod())
-                .errorType(S3Exception.getErrorType())
+                .errorType(ex.getErrorType())
                 .timestamp(Instant.now())
                 .build();
 

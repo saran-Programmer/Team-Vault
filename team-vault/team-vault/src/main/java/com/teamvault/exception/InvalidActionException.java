@@ -16,7 +16,7 @@ public class InvalidActionException extends RuntimeException {
         super(message);
     }
 
-    public static String getErrorType() {
+    public String getErrorType() {
         return EXCEPTIONTYPE;
     }
 }

@@ -27,7 +27,7 @@ public class ResourceNotFoundException extends RuntimeException {
         return resourceId;
     }
     
-    public static String getErrorType() {
+    public String getErrorType() {
     	
         return EXCEPTIONTYPE;
     }

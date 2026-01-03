@@ -20,7 +20,7 @@ public class FileUploadModeMismatchException extends RuntimeException {
         super(message);
     }
 
-    public static String getErrorType() {
+    public String getErrorType() {
     	
         return EXCEPTION_TYPE;
     }

@@ -21,7 +21,7 @@ public class TokenException extends RuntimeException {
         super(message);
     }
     
-    public static String getErrorType() {
+    public String getErrorType() {
     	
     	return EXCEPTIONTYPE;
     }

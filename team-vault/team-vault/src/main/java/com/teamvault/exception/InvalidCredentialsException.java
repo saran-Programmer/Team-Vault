@@ -18,7 +18,8 @@ public class InvalidCredentialsException extends RuntimeException {
         super(message, cause);
     }
     
-    public static String getErrorType() {
+    public String getErrorType() {
+    	
         return EXCEPTIONTYPE;
     }
 }
