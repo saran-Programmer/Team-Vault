@@ -4,11 +4,11 @@ import com.teamvault.entity.User;
 import com.teamvault.enums.UserRole;
 import com.teamvault.models.CustomPrincipal;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
+@Builder
 public class UserRoleChangeEvent {
 
     private final User targetUser;

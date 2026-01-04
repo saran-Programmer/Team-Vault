@@ -9,6 +9,7 @@ import com.teamvault.DTO.UserPatchRequest;
 import com.teamvault.DTO.UserResponseDTO;
 import com.teamvault.DTO.UserRoleChangeResponse;
 import com.teamvault.entity.User;
+import com.teamvault.enums.RoleChangeAction;
 import com.teamvault.enums.UserRole;
 import com.teamvault.event.model.UserRoleChangeEvent;
 import com.teamvault.exception.InvalidActionException;
@@ -28,75 +29,55 @@ public class UserService {
     
     private final ApplicationEventPublisher eventPublisher;
     
-    public UserResponseDTO getUserDTOById(String id) {
+    public UserResponseDTO getUserDTOById(String userId) {
 
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
+        User user = getUserOrThrow(userId);
 
         return UserMapper.toUserResponse(user);
     }
     
-    public User getUserById(String id) {
+    public User getUserById(String userId) {
 
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", id));
-
-        return user;
+        return getUserOrThrow(userId);
     }
     
+    private User getUserOrThrow(String userId) {
+    	
+    	return userRepository.findById(userId)
+    			.orElseThrow(() -> new ResourceNotFoundException("User", userId));
+    }
 
     public ResponseEntity<?> promoteUser(String targetUserId) {
 
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
-        if (targetUserId.isBlank()) {
-        	
-            throw new InvalidActionException("Target user ID cannot be blank", "User");
-        }
-
-        if (targetUserId.equals(currentUser.getUserId())) {
-        	
-            throw new InvalidActionException("Cannot promote yourself", "User");
-        }
-        
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", targetUserId));
        
-        UserRole currentRole = UserRole.valueOf(currentUser.getRole());
-        UserRole targetRole = targetUser.getUserRole();
+        UserRole targetUserCurrentRole = targetUser.getUserRole();
 
-        if (currentRole.getLevel() <= targetRole.getLevel()) {
-        	
-            throw new InvalidActionException("Cannot Promote a User With Equal Or Higher Role", "User");
-        }
+        UserRole targetUserNewRole = User.getNextRole(targetUserCurrentRole);
 
-        UserRole newRole = User.getNextRole(targetRole);
-
-        if (newRole == UserRole.SUPER_ADMIN && currentRole != UserRole.SUPER_ADMIN) {
-        	
-        	throw new InvalidActionException("Only SUPER_ADMIN can promote a user to SUPER_ADMIN", "User");
-        }
+        targetUser.setUserRole(targetUserNewRole);
         
-        UserRole oldRole = targetRole;
-
-        targetUser.setUserRole(newRole);
+        UserRoleChangeEvent event = UserRoleChangeEvent.builder()
+        	    .targetUser(targetUser)
+        	    .oldRole(targetUserCurrentRole)
+        	    .newRole(targetUserNewRole)
+        	    .action(RoleChangeAction.PROMOTE.toString())
+        	    .changedBy(currentUser)
+        	    .build();
+        
+        eventPublisher.publishEvent(event);
         
         userRepository.save(targetUser);
-        
+              
         UserRoleChangeResponse response = UserRoleChangeResponse.builder()
                 .userId(targetUser.getId())
                 .userName(targetUser.getName().getFullName())
-                .oldRole(oldRole.name())
-                .newRole(newRole.name())
+                .oldRole(targetUserCurrentRole.name())
+                .newRole(targetUserNewRole.name())
                 .build();
-        
-        UserRoleChangeEvent event = new UserRoleChangeEvent(
-                targetUser,
-                oldRole,
-                newRole,
-                "PROMOTED",
-                currentUser
-        );
-        
-        eventPublisher.publishEvent(event);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
@@ -105,55 +86,32 @@ public class UserService {
 
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
 
-        if (targetUserId.isBlank() || targetUserId.equals(currentUser.getUserId())) {
-        	
-            throw new InvalidActionException("Cannot depromote yourself", "User");
-        }
-
         User targetUser = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", targetUserId));
 
-        UserRole currentRole = UserRole.valueOf(currentUser.getRole());
-        UserRole targetRole = targetUser.getUserRole();
-
-        if (targetRole == UserRole.SUPER_ADMIN && currentRole != UserRole.SUPER_ADMIN) {
-        	
-            throw new InvalidActionException("Only SUPER_ADMIN can depromote a SUPER_ADMIN user", "User");
-        }
-
-        if (targetRole == UserRole.USER) {
-        	
-            throw new InvalidActionException("Cannot depromote a user below USER role", "User");
-        }
-
-        if (currentRole.getLevel() <= targetRole.getLevel()) {
-        	
-            throw new InvalidActionException("Cannot depromote a user with equal or higher role", "User");
-        }
-
-        UserRole oldRole = targetRole;
+        UserRole targetUserOldRole = targetUser.getUserRole();
         
-        UserRole newRole = User.getPreviousRole(targetRole);
+        UserRole targetUserNewRole = User.getPreviousRole(targetUserOldRole);
 
-        targetUser.setUserRole(newRole);
+        targetUser.setUserRole(targetUserNewRole);
                 
-        userRepository.save(targetUser);
-        
-        UserRoleChangeEvent event = new UserRoleChangeEvent(
-                targetUser,
-                oldRole,
-                newRole,
-                "DEPROMOTED",
-                currentUser
-        );
+        UserRoleChangeEvent event = UserRoleChangeEvent.builder()
+        		.targetUser(targetUser)
+        		.oldRole(targetUserOldRole)
+        		.newRole(targetUserNewRole)
+        		.action(RoleChangeAction.DEPROMOTE.toString())
+        		.changedBy(currentUser)
+        		.build();
         
         eventPublisher.publishEvent(event);
+        
+        userRepository.save(targetUser);
         
         UserRoleChangeResponse response = UserRoleChangeResponse.builder()
                 .userId(targetUser.getId())
                 .userName(targetUser.getName().getFullName())
-                .oldRole(oldRole.name())
-                .newRole(newRole.name())
+                .oldRole(targetUserOldRole.name())
+                .newRole(targetUserNewRole.name())
                 .build();
         
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
@@ -162,6 +120,13 @@ public class UserService {
     public User patchUser(String userId, UserPatchRequest req) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        
+        String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+        
+        if(!user.getId().equals(currentUserId)) {
+        	
+        	throw new InvalidActionException("Not allowed to update other users");
+        }
 
         boolean changed = false;
 

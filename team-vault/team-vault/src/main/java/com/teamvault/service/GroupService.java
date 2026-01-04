@@ -14,6 +14,7 @@ import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMapper;
 import com.teamvault.mapper.GroupMemberMapper;
+import com.teamvault.query.processor.GroupQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
 import com.teamvault.security.filter.SecurityUtil;
@@ -30,12 +31,11 @@ public class GroupService {
     
     private final GroupMemberRepository groupMemberRepository;
     
-    
+    private final GroupQueryProcessor groupQueryProcessor;
 
     public GroupResponseDTO createGroup(GroupRequestDTO request) {
 
-        Optional<Group> existingGroup = groupRepository.findByGroupDetailsVO_Title(request.getTitle())
-                .filter(g -> !g.isDeleted());
+        Optional<Group> existingGroup = groupQueryProcessor.getConflictingGroup(request);
 
         if (existingGroup.isPresent()) {
         	
@@ -79,27 +79,28 @@ public class GroupService {
         Group group = getActiveGroupOrThrow(groupId);
     	
         group.setDeleted(true);
+        
+   	 	groupMemberRepository.markGroupMembersAsDeleted(groupId);
+        
         groupRepository.save(group);
     }
 
     public Group getActiveGroupOrThrow(String groupId) {
-    	
-    	 Optional<Group> groupDoc = groupRepository.findById(groupId);
-    	 
-    	 if(groupDoc.isEmpty()) {
-    		 
-    		 throw new ResourceNotFoundException("Group", groupId);
-    	 }
-    	 
-    	 Group group = groupDoc.get();
-    	 
-    	 if(group.isDeleted()) {
-    		 
-    		 throw new InvalidActionException("Group " + groupId + " is deleted");
-    	 }
-    	 
-    	 groupMemberRepository.markGroupMembersAsDeleted(groupId);
 
-        return group;
+    	Optional<Group> groupDoc = groupRepository.findById(groupId);
+
+    	if(groupDoc.isEmpty()) {
+
+    		throw new ResourceNotFoundException("Group", groupId);
+    	}
+
+    	Group group = groupDoc.get();
+
+    	if(group.isDeleted()) {
+
+    		throw new InvalidActionException("Group " + groupId + " is deleted");
+    	}
+
+    	return group;
     }
 }

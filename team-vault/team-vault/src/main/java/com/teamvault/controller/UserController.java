@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.teamvault.DTO.UserPatchRequest;
+import com.teamvault.annotations.CanPromoteUser;
 import com.teamvault.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class UserController {
     }
 
     
+    @CanPromoteUser
     @PutMapping("/{targetUserId}/promote")
     public ResponseEntity<?> promoteUser(@PathVariable String targetUserId) {
     	
