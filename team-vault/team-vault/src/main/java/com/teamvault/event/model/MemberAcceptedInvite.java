@@ -50,9 +50,9 @@ public class MemberAcceptedInvite extends GroupMemberEvent {
 	}
 
 	@Override
-	public MembershipActionResponse applyMembershipAction(String groupId, MembershipActionRequest request) {
+	public MembershipActionResponse applyMembershipAction(String groupMemberId, MembershipActionRequest request) {
 		
-		GroupMember beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupId);
+		GroupMember beforeUpdate = groupMemberDomainService.getInitialGroupMember(groupMemberId);
 		
 		GroupMember afterUpdate = getLatestGroupMember(beforeUpdate);
 		

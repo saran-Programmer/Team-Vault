@@ -71,6 +71,7 @@ public class GroupService {
     public GroupResponseDTO getGroupById(String groupId) {
     	
         Group group = getActiveGroupOrThrow(groupId);
+        
         return GroupMapper.mapToResponse(group);
     }
 

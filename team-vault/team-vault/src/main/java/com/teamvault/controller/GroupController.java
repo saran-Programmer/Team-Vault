@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.teamvault.DTO.GroupRequestDTO;
+import com.teamvault.annotations.CanCreateGroup;
+import com.teamvault.annotations.CanDeleteGroup;
 import com.teamvault.service.GroupService;
 
 import jakarta.validation.Valid;
@@ -22,12 +24,14 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getGroupById(groupId));
     }
 
+    @CanCreateGroup
     @PostMapping
     public ResponseEntity<?> createGroup(@RequestBody @Valid GroupRequestDTO request) {
     	
         return ResponseEntity.ok(groupService.createGroup(request));
     }
     
+    @CanDeleteGroup
     @DeleteMapping("/{groupId}")
     public ResponseEntity<?> deleteGroup(@PathVariable String groupId) {
     	

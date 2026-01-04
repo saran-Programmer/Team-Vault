@@ -15,7 +15,6 @@ public class GroupMapper {
         return GroupResponseDTO.builder()
                 .id(group.getId())
                 .groupDetailsVO(group.getGroupDetailsVO())
-                .groupStatisticsVO(group.getGroupStatisticsVO())
                 .groupVisibility(group.getGroupVisibility())
                 .groupStatisticsVO(group.getGroupStatisticsVO())
                 .createdDate(group.getCreatedDate())

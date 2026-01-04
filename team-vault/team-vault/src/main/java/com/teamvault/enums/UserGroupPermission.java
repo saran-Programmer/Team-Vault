@@ -33,5 +33,4 @@ public enum UserGroupPermission {
                 .map(Enum::name)
                 .toList();
     }
-
 }

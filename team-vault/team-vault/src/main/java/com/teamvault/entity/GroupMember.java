@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.valueobject.GroupAccessMetadataVO;
@@ -53,4 +54,12 @@ public class GroupMember {
 	
 	@LastModifiedDate
 	private Instant lastUpdatedDate;
+	
+	@JsonIgnore
+    public boolean hasAdminPermissions() {
+		
+		if(this.isGroupDeleted || this.membershipStatus != MembershipStatus.ACTIVE) return false;
+
+        return userPermissions != null && this.getUserPermissions().containsAll(UserGroupPermission.adminPermissions());
+    }
 }
