@@ -25,7 +25,6 @@ import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.SortDirection;
 import com.teamvault.enums.UserGroupPermission;
-import com.teamvault.enums.UserRole;
 import com.teamvault.event.model.GroupMemberEvent;
 import com.teamvault.event.resolver.GroupMemberEventResolver;
 import com.teamvault.exception.InvalidActionException;
@@ -162,9 +161,7 @@ public class GroupMemberService {
 		
 		String currentUserId = SecurityUtil.getCurrentUser().getUserId();
 		
-		UserRole userRole = SecurityUtil.getCurrentUserRole();
-		
-		return groupMemberQueryProcessor.getUserActiveGroup(currentUserId, userRole, offset, limit, sortBy, sortDirection);
+		return groupMemberQueryProcessor.getUserActiveGroup(currentUserId, offset, limit, sortBy, sortDirection);
 	}
 	
 	public void removeGroupMember(String groupMemberId) {
@@ -173,7 +170,11 @@ public class GroupMemberService {
 				.orElseThrow(() ->  new ResourceNotFoundException("Group Member not found", groupMemberId));
 		
 		groupMember.setMembershipStatus(MembershipStatus.REMOVED);
-
+		
+		GroupMemberLog groupMemberLog = GroupMemberMapper.getRemoveGroupMemberLog(groupMember);
+		
+		eventPublisher.publishEvent(groupMemberLog);
+		
 		groupMemberQueryProcessor.saveUpdatedGroupMember(groupMember);
 	}
 	

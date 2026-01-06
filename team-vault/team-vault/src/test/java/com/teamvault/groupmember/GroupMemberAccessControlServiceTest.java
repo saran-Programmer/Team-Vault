@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.teamvault.entity.GroupMember;
+import com.teamvault.enums.GroupMemberEventType;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.enums.UserRole;
@@ -35,15 +38,30 @@ class GroupMemberAccessControlServiceTest {
     @InjectMocks
     private GroupMemberAccessControllService service;
 
+    private MockedStatic<SecurityUtil> securityUtilMock;
+
+    @BeforeEach
+    void setUp() {
+    	
+        securityUtilMock = mockStatic(SecurityUtil.class);
+        securityUtilMock.when(SecurityUtil::getCurrentUser)
+                .thenReturn(principal("user-1", UserRole.ADMIN));
+    }
+
+    @AfterEach
+    void tearDown() {
+    	
+        securityUtilMock.close();
+    }
 
     private CustomPrincipal principal(String userId, UserRole role) {
     	
         return new CustomPrincipal(userId, "user", role.name(), List.of(new SimpleGrantedAuthority("ROLE_" + role.name())));
     }
 
-    private GroupMember groupMember(String userId, String groupId,  Set<UserGroupPermission> permissions, MembershipStatus status, boolean deleted) {
-    	
-        return GroupMember.builder()
+    private GroupMember groupMember(String userId, String groupId, Set<UserGroupPermission> permissions, MembershipStatus status, boolean deleted) {
+       
+    	return GroupMember.builder()
                 .user(UserVO.builder().id(userId).build())
                 .group(GroupVO.builder().id(groupId).build())
                 .userPermissions(permissions)
@@ -52,146 +70,161 @@ class GroupMemberAccessControlServiceTest {
                 .build();
     }
 
-    private MockedStatic<SecurityUtil> mockUser(CustomPrincipal principal) {
-    	
-        MockedStatic<SecurityUtil> mocked = mockStatic(SecurityUtil.class);
-        mocked.when(SecurityUtil::getCurrentUser).thenReturn(principal);
-        return mocked;
-    }
-
-
     @Test
     void canInviteUser_whenSuperAdmin_shouldReturnTrue() {
     	
-        try (var ignored = mockUser(principal("super", UserRole.SUPER_ADMIN))) {
-            assertTrue(service.canInviteUser("group-1"));
-            verifyNoInteractions(groupMemberQueryProcessor);
-        }
+        securityUtilMock.when(SecurityUtil::getCurrentUser)
+                .thenReturn(principal("super", UserRole.SUPER_ADMIN));
+
+        assertTrue(service.canInviteUser("group-1"));
+        verifyNoInteractions(groupMemberQueryProcessor);
     }
 
     @Test
     void canInviteUser_whenActiveMemberWithPermission_shouldReturnTrue() {
-    	
-        try (var ignored = mockUser(principal("user-1", UserRole.ADMIN))) {
 
-            GroupMember member = groupMember(
-                    "user-1",
-                    "group-1",
-                    Set.of(UserGroupPermission.INVITE_USER),
-                    MembershipStatus.ACTIVE,
-                    false
-            );
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(UserGroupPermission.INVITE_USER),
+                MembershipStatus.ACTIVE, false);
 
-            when(groupMemberQueryProcessor.getByUserIdAndGroupId("user-1", "group-1"))
-                    .thenReturn(Optional.of(member));
+        when(groupMemberQueryProcessor.getByUserIdAndGroupId("user-1", "group-1"))
+                .thenReturn(Optional.of(member));
 
-            assertTrue(service.canInviteUser("group-1"));
-        }
+        assertTrue(service.canInviteUser("group-1"));
     }
 
     @Test
     void canInviteUser_whenPermissionMissing_shouldReturnFalse() {
-        try (var ignored = mockUser(principal("user-1", UserRole.ADMIN))) {
 
-            GroupMember member = groupMember(
-                    "user-1",
-                    "group-1",
-                    Set.of(UserGroupPermission.READ_RESOURCE),
-                    MembershipStatus.ACTIVE,
-                    false
-            );
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(UserGroupPermission.READ_RESOURCE),
+                MembershipStatus.ACTIVE, false);
 
-            when(groupMemberQueryProcessor.getByUserIdAndGroupId("user-1", "group-1"))
-                    .thenReturn(Optional.of(member));
+        when(groupMemberQueryProcessor.getByUserIdAndGroupId("user-1", "group-1"))
+                .thenReturn(Optional.of(member));
 
-            assertFalse(service.canInviteUser("group-1"));
-        }
+        assertFalse(service.canInviteUser("group-1"));
     }
-
 
     @Test
     void permissionUpdateAllowed_whenSuperAdmin_shouldReturnTrue() {
-        try (var ignored = mockUser(principal("super", UserRole.SUPER_ADMIN))) {
-            assertTrue(service.permissionUpdateAllowed("gm-1"));
-        }
+        securityUtilMock.when(SecurityUtil::getCurrentUser)
+                .thenReturn(principal("super", UserRole.SUPER_ADMIN));
+
+        assertTrue(service.permissionUpdateAllowed("gm-1"));
     }
 
     @Test
     void permissionUpdateAllowed_whenOwnerWithPermission_shouldReturnTrue() {
-        try (var ignored = mockUser(principal("user-1", UserRole.ADMIN))) {
 
-            GroupMember member = groupMember(
-                    "user-1",
-                    "group-1",
-                    Set.of(UserGroupPermission.MANAGE_USER_ROLES),
-                    MembershipStatus.ACTIVE,
-                    false
-            );
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(UserGroupPermission.MANAGE_USER_ROLES),
+                MembershipStatus.ACTIVE, false);
 
-            when(groupMemberQueryProcessor.getGroupMemberById("gm-1"))
-                    .thenReturn(Optional.of(member));
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-1"))
+                .thenReturn(Optional.of(member));
 
-            assertTrue(service.permissionUpdateAllowed("gm-1"));
-        }
+        assertTrue(service.permissionUpdateAllowed("gm-1"));
     }
 
     @Test
     void canUploadResource_whenPermissionPresent_shouldReturnTrue() {
-        try (var ignored = mockUser(principal("user-1", UserRole.ADMIN))) {
 
-            GroupMember member = groupMember(
-                    "user-1",
-                    "group-1",
-                    Set.of(UserGroupPermission.WRITE_RESOURCE),
-                    MembershipStatus.ACTIVE,
-                    false
-            );
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(UserGroupPermission.WRITE_RESOURCE),
+                MembershipStatus.ACTIVE, false);
 
-            when(groupMemberQueryProcessor.getGroupMemberById("gm-2"))
-                    .thenReturn(Optional.of(member));
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-2"))
+                .thenReturn(Optional.of(member));
 
-            assertTrue(service.canUploadResource("gm-2"));
-        }
+        assertTrue(service.canUploadResource("gm-2"));
     }
 
     @Test
     void canRemoveGroupMember_whenInviterPermissionPresent_shouldReturnTrue() {
-        try (var ignored = mockUser(principal("admin-1", UserRole.ADMIN))) {
 
-            GroupMember target = groupMember(
-                    "user-2",
-                    "group-1",
-                    Set.of(),
-                    MembershipStatus.ACTIVE,
-                    false
-            );
+        GroupMember target = groupMember("user-2", "group-1",
+                Set.of(), MembershipStatus.ACTIVE, false);
 
-            GroupMember admin = groupMember(
-                    "admin-1",
-                    "group-1",
-                    Set.of(UserGroupPermission.INVITE_USER),
-                    MembershipStatus.ACTIVE,
-                    false
-            );
+        GroupMember admin = groupMember("user-1", "group-1",
+                Set.of(UserGroupPermission.INVITE_USER),
+                MembershipStatus.ACTIVE, false);
 
-            when(groupMemberQueryProcessor.getGroupMemberById("gm-target"))
-                    .thenReturn(Optional.of(target));
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-target"))
+                .thenReturn(Optional.of(target));
 
-            when(groupMemberQueryProcessor.getByUserIdAndGroupId("admin-1", "group-1"))
-                    .thenReturn(Optional.of(admin));
+        when(groupMemberQueryProcessor.getByUserIdAndGroupId("user-1", "group-1"))
+                .thenReturn(Optional.of(admin));
 
-            assertTrue(service.canRemoveGroupMember("gm-target"));
-        }
+        assertTrue(service.canRemoveGroupMember("gm-target"));
     }
 
     @Test
     void canRemoveGroupMember_whenTargetMissing_shouldReturnFalse() {
-        try (var ignored = mockUser(principal("admin", UserRole.ADMIN))) {
 
-            when(groupMemberQueryProcessor.getGroupMemberById("gm-x"))
-                    .thenReturn(Optional.empty());
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-x"))
+                .thenReturn(Optional.empty());
 
-            assertFalse(service.canRemoveGroupMember("gm-x"));
-        }
+        assertFalse(service.canRemoveGroupMember("gm-x"));
+    }
+
+    @Test
+    void canPerformMembershipAction_whenValidInviteAccepted_shouldReturnTrue() {
+
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(), MembershipStatus.PENDING, false);
+
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-1"))
+                .thenReturn(Optional.of(member));
+
+        assertTrue(service.canPerformMembershipAction("gm-1", GroupMemberEventType.INVITE_ACCEPTED));
+    }
+
+    @Test
+    void canPerformMembershipAction_whenInvalidStatusForInviteAccepted_shouldReturnFalse() {
+
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(), MembershipStatus.ACTIVE, false);
+
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-1"))
+                .thenReturn(Optional.of(member));
+
+        assertFalse(service.canPerformMembershipAction("gm-1", GroupMemberEventType.INVITE_ACCEPTED));
+    }
+
+    @Test
+    void canPerformMembershipAction_whenMemberExitedValid_shouldReturnTrue() {
+
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(), MembershipStatus.ACTIVE, false);
+
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-2"))
+                .thenReturn(Optional.of(member));
+
+        assertTrue(service.canPerformMembershipAction("gm-2", GroupMemberEventType.MEMBER_EXITED));
+    }
+
+    @Test
+    void canPerformMembershipAction_whenGroupDeleted_shouldReturnFalse() {
+
+        GroupMember member = groupMember("user-1", "group-1",
+                Set.of(), MembershipStatus.ACTIVE, true);
+
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-3"))
+                .thenReturn(Optional.of(member));
+
+        assertFalse(service.canPerformMembershipAction("gm-3", GroupMemberEventType.MEMBER_EXITED));
+    }
+
+    @Test
+    void canPerformMembershipAction_whenUserMismatch_shouldReturnFalse() {
+
+        GroupMember member = groupMember("user-2", "group-1",
+                Set.of(), MembershipStatus.ACTIVE, false);
+
+        when(groupMemberQueryProcessor.getGroupMemberById("gm-4"))
+                .thenReturn(Optional.of(member));
+
+        assertFalse(service.canPerformMembershipAction("gm-4", GroupMemberEventType.MEMBER_EXITED));
     }
 }

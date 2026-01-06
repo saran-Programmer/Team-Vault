@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,13 +21,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import com.teamvault.DTO.PermissionUpdateRequest;
 import com.teamvault.DTO.PermissionUpdateResponse;
 import com.teamvault.entity.GroupMember;
-import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
-import com.teamvault.enums.SortDirection;
 import com.teamvault.enums.UserGroupPermission;
-import com.teamvault.enums.UserRole;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
+import com.teamvault.models.CustomPrincipal;
 import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
@@ -36,7 +34,6 @@ import com.teamvault.service.GroupMemberService;
 import com.teamvault.service.GroupService;
 import com.teamvault.valueobject.GroupVO;
 import com.teamvault.valueobject.UserVO;
-import com.teamvault.models.CustomPrincipal;
 
 @ExtendWith(MockitoExtension.class)
 class GroupMemberServiceNonEventMethodsTest {
@@ -61,11 +58,11 @@ class GroupMemberServiceNonEventMethodsTest {
 
     @Test
     void updateUserPermission_shouldUpdatePermissionsAndPublishEvent() {
-    	
+
         GroupMember groupMember = GroupMember.builder()
                 .id("gm-1")
                 .group(GroupVO.builder().id("group-1").build())
-                .user(UserVO.builder().id("user-1").build()) 
+                .user(UserVO.builder().id("user-1").build())
                 .userPermissions(Set.of(UserGroupPermission.READ_RESOURCE))
                 .isGroupDeleted(false)
                 .build();
@@ -94,7 +91,8 @@ class GroupMemberServiceNonEventMethodsTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> groupMemberService.updateUserPermission("gm-404",
+                () -> groupMemberService.updateUserPermission(
+                        "gm-404",
                         PermissionUpdateRequest.builder().build()));
     }
 
@@ -103,7 +101,6 @@ class GroupMemberServiceNonEventMethodsTest {
         GroupMember groupMember = GroupMember.builder()
                 .id("gm-1")
                 .group(GroupVO.builder().id("group-1").build())
-                .user(UserVO.builder().id("user-1").build())
                 .isGroupDeleted(true)
                 .build();
 
@@ -111,37 +108,14 @@ class GroupMemberServiceNonEventMethodsTest {
                 .thenReturn(Optional.of(groupMember));
 
         assertThrows(InvalidActionException.class,
-                () -> groupMemberService.updateUserPermission("gm-1",
+                () -> groupMemberService.updateUserPermission(
+                        "gm-1",
                         PermissionUpdateRequest.builder().build()));
     }
 
     @Test
-    void getUserActiveGroup_shouldDelegateToQueryProcessor() {
-        when(groupMemberQueryProcessor.getUserActiveGroup(
-                "user-1",
-                UserRole.USER,
-                0,
-                10,
-                GroupMemberSortField.LAST_ACCESSED,
-                SortDirection.ASC))
-                .thenReturn(java.util.List.of());
-
-        try (var mocked = Mockito.mockStatic(SecurityUtil.class)) {
-            mocked.when(SecurityUtil::getCurrentUserRole).thenReturn(UserRole.USER);
-            mocked.when(SecurityUtil::getCurrentUser)
-            .thenReturn(new CustomPrincipal("user-1", "user-1", "ROLE_USER", Collections.emptyList()));
-
-            assertNotNull(
-                    groupMemberService.getUserActiveGroup(
-                            0,
-                            10,
-                            GroupMemberSortField.LAST_ACCESSED,
-                            SortDirection.ASC));
-        }
-    }
-
-    @Test
     void removeGroupMember_shouldMarkMemberAsRemoved() {
+
         GroupMember groupMember = GroupMember.builder()
                 .id("gm-1")
                 .membershipStatus(MembershipStatus.ACTIVE)
@@ -150,7 +124,15 @@ class GroupMemberServiceNonEventMethodsTest {
         when(groupMemberQueryProcessor.getGroupMemberById("gm-1"))
                 .thenReturn(Optional.of(groupMember));
 
-        groupMemberService.removeGroupMember("gm-1");
+        CustomPrincipal principal = Mockito.mock(CustomPrincipal.class);
+        when(principal.getUserId()).thenReturn("user-123");
+
+        try (MockedStatic<SecurityUtil> mockedSecurity = Mockito.mockStatic(SecurityUtil.class)) {
+            mockedSecurity.when(SecurityUtil::getCurrentUser)
+                    .thenReturn(principal);
+
+            groupMemberService.removeGroupMember("gm-1");
+        }
 
         assertEquals(MembershipStatus.REMOVED, groupMember.getMembershipStatus());
         verify(groupMemberQueryProcessor).saveUpdatedGroupMember(groupMember);

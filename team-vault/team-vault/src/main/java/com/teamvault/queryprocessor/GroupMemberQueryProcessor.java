@@ -3,6 +3,7 @@ package com.teamvault.queryprocessor;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -19,7 +20,6 @@ import com.teamvault.entity.GroupMember;
 import com.teamvault.enums.GroupMemberSortField;
 import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.SortDirection;
-import com.teamvault.enums.UserRole;
 import com.teamvault.fields.CacheName;
 import com.teamvault.fields.GroupFields;
 import com.teamvault.fields.GroupMemberFields;
@@ -39,7 +39,7 @@ public class GroupMemberQueryProcessor {
 	public List<GroupMembershipResponse> getUserGroupMembershipsByStatus(String userId, int offset, int limit, MembershipStatus membershipStatus) {
 
 	    Criteria criteria = new Criteria().and(GroupMemberFields.USER_ID).is(userId)
-	            .and(GroupMemberFields.MEMBERSHIP_STATUS).is(membershipStatus.toString())
+	            .and(GroupMemberFields.MEMBERSHIP_STATUS).is(membershipStatus)
 	            .and(GroupMemberFields.IS_DELETED).is(false);
 
 	    MatchOperation matchOperation = Aggregation.match(criteria);
@@ -76,7 +76,7 @@ public class GroupMemberQueryProcessor {
 	    return mongoTemplate.aggregate(aggregation, GroupMember.class, GroupMembershipResponse.class).getMappedResults();
 	}
 
-	public List<UserActiveGroupDTO> getUserActiveGroup(String userId, UserRole userRole, int offset, int limit, GroupMemberSortField sortBy, SortDirection sortDirection) {
+	public List<UserActiveGroupDTO> getUserActiveGroup(String userId,  int offset, int limit, GroupMemberSortField sortBy, SortDirection sortDirection) {
 
 	    Criteria criteria = Criteria.where(GroupMemberFields.IS_DELETED).is(false);
 
@@ -123,8 +123,10 @@ public class GroupMemberQueryProcessor {
     	return groupMemberRepository.findByUser_IdAndGroup_Id(userId, groupId);
     }
     
+    @CachePut(cacheNames = CacheName.GROUP_MEMBER, key = "#groupMember.id")
     public GroupMember saveUpdatedGroupMember(GroupMember groupMember) {
-    	
-    	return groupMemberRepository.save(groupMember);
+
+        return groupMemberRepository.save(groupMember);
     }
+
 }

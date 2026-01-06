@@ -15,6 +15,7 @@ import com.teamvault.DTO.GroupInviteRequest;
 import com.teamvault.DTO.MembershipActionRequest;
 import com.teamvault.DTO.PermissionUpdateRequest;
 import com.teamvault.annotations.CanInviteUser;
+import com.teamvault.annotations.CanPerformMembershipAction;
 import com.teamvault.annotations.CanRemoveGroupMember;
 import com.teamvault.annotations.PermissionUpdateAllowed;
 import com.teamvault.enums.GroupMemberSortField;
@@ -48,6 +49,7 @@ public class GroupMemberController {
         return ResponseEntity.accepted().body(groupMemberService.inviteUser(groupId, request));
     }
 	
+	@CanPerformMembershipAction
 	@PutMapping("/{groupMemberId}/action")
     public ResponseEntity<?> performMembershipAction(@PathVariable String groupMemberId,
             @RequestBody @Valid MembershipActionRequest request) {
