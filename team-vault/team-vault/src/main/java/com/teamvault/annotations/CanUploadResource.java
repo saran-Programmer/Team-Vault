@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@accessControlService.canUploadResource(#groupMemberId)")
+@PreAuthorize("@groupMemberAccessControlService.canUploadResource(#groupMemberId)")
 public @interface CanUploadResource {
 
 }

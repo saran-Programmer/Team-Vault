@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import com.teamvault.entity.GroupMember;
 import com.teamvault.enums.UserRole;
 import com.teamvault.models.CustomPrincipal;
-import com.teamvault.query.processor.GroupMemberQueryProcessor;
+import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
 
 import lombok.RequiredArgsConstructor;
 

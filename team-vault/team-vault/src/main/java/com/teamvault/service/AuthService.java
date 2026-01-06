@@ -10,7 +10,7 @@ import com.teamvault.enums.UserRole;
 import com.teamvault.exception.InvalidCredentialsException;
 import com.teamvault.exception.UserExistsException;
 import com.teamvault.mapper.UserMapper;
-import com.teamvault.query.processor.AuthQueryProcessor;
+import com.teamvault.queryprocessor.AuthQueryProcessor;
 import com.teamvault.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;

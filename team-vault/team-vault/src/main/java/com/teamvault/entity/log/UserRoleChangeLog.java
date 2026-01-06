@@ -5,6 +5,8 @@ import java.time.Instant;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.teamvault.enums.UserRole;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,9 +26,9 @@ public class UserRoleChangeLog {
     
     private String targetUserName;
     
-    private String oldRole;
+    private UserRole oldRole;
     
-    private String newRole;
+    private UserRole newRole;
     
     private String action;
     

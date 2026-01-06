@@ -13,8 +13,8 @@ import com.teamvault.exception.InvalidActionException;
 import com.teamvault.mapper.ResourceEngagementMapper;
 import com.teamvault.models.Comment;
 import com.teamvault.models.CommentThread;
-import com.teamvault.query.processor.GroupMemberQueryProcessor;
-import com.teamvault.query.processor.ResourceQueryProcessor;
+import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
+import com.teamvault.queryprocessor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceEngagementRepository;
 import com.teamvault.security.filter.SecurityUtil;
 

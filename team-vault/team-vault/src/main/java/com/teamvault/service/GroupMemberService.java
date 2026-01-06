@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.teamvault.DTO.GroupInviteRequest;
@@ -32,7 +31,7 @@ import com.teamvault.event.resolver.GroupMemberEventResolver;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMemberMapper;
-import com.teamvault.query.processor.GroupMemberQueryProcessor;
+import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
 import com.teamvault.security.filter.SecurityUtil;

@@ -28,7 +28,7 @@ import com.teamvault.exception.S3Exception;
 import com.teamvault.fields.CacheName;
 import com.teamvault.mapper.ResourceMapper;
 import com.teamvault.models.S3Details;
-import com.teamvault.query.processor.ResourceQueryProcessor;
+import com.teamvault.queryprocessor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceRepository;
 import com.teamvault.security.filter.SecurityUtil;
 

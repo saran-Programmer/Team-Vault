@@ -23,7 +23,7 @@ import com.teamvault.enums.UserRole;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.models.CustomPrincipal;
-import com.teamvault.query.processor.GroupQueryProcessor;
+import com.teamvault.queryprocessor.GroupQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
 import com.teamvault.security.filter.SecurityUtil;

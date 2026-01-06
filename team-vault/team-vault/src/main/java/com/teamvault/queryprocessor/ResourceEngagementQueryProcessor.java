@@ -1,4 +1,4 @@
-package com.teamvault.query.processor;
+package com.teamvault.queryprocessor;
 
 import org.springframework.stereotype.Service;
 

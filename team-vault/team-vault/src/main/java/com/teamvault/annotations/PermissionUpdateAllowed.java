@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@accessControlService.permissionUpdateAllowed(#groupMemberId)")
+@PreAuthorize("@groupMemberAccessControlService.permissionUpdateAllowed(#groupMemberId)")
 public @interface PermissionUpdateAllowed {
 
 }

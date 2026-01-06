@@ -20,7 +20,7 @@ import com.teamvault.enums.MembershipStatus;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.enums.UserRole;
 import com.teamvault.models.CustomPrincipal;
-import com.teamvault.query.processor.GroupMemberQueryProcessor;
+import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
 import com.teamvault.security.filter.GroupAccessControlService;
 import com.teamvault.security.filter.SecurityUtil;
 

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.apache.http.auth.Credentials;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -66,8 +65,8 @@ class UserChangeListenerTest {
 
         assertEquals("user-1", savedLog.getTargetUserId());
         assertEquals("targetUser", savedLog.getTargetUserName());
-        assertEquals("USER", savedLog.getOldRole());
-        assertEquals("ADMIN", savedLog.getNewRole());
+        assertEquals(UserRole.USER, savedLog.getOldRole());
+        assertEquals(UserRole.ADMIN, savedLog.getNewRole());
         assertEquals("admin-1", savedLog.getChangedByUserId());
         assertEquals("adminUser", savedLog.getChangedByUserName());
         assertEquals(RoleChangeAction.PROMOTE.toString(), savedLog.getAction());

@@ -13,8 +13,8 @@ import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.UserGroupPermission;
 import com.teamvault.enums.UserRole;
 import com.teamvault.models.CustomPrincipal;
-import com.teamvault.query.processor.GroupMemberQueryProcessor;
-import com.teamvault.query.processor.ResourceQueryProcessor;
+import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
+import com.teamvault.queryprocessor.ResourceQueryProcessor;
 
 import lombok.RequiredArgsConstructor;
 
@@ -42,57 +42,12 @@ public class AccessControlService {
                         member.getUserPermissions().contains(permission)
                 ).isPresent();
     }
-
-    public boolean canInviteUser(String groupId) {
-    	
-        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
-        
-        if (currentUser == null) return false;
-
-        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
-
-        return groupMemberQueryProcessor.getByUserIdAndGroupId(currentUser.getUserId(), groupId)
-                .filter(member ->
-                        member.getMembershipStatus() == MembershipStatus.ACTIVE &&
-                        !member.isGroupDeleted() &&
-                        member.getUserPermissions().contains(UserGroupPermission.INVITE_USER)
-                ).isPresent();
-    }
-
-    public boolean permissionUpdateAllowed(String groupMemberId) {
-    	
-        return hasPermission(groupMemberId, UserGroupPermission.MANAGE_USER_ROLES);
-    }
-
-    public boolean canUploadResource(String groupMemberId) {
-    	
-        return hasPermission(groupMemberId, UserGroupPermission.WRITE_RESOURCE);
-    }
     
     public boolean canAccessGroupResources(String groupMemberId) {
     	
         return hasPermission(groupMemberId, UserGroupPermission.READ_RESOURCE);
     }
-    
-    public boolean canRemoveGroupMember(String groupMemberId) {
-    	
-    	 Optional<GroupMember> groupMemberOptional = groupMemberQueryProcessor.getGroupMemberById(groupMemberId);
-    	 
-    	 if(groupMemberOptional.isEmpty()) return false;
-    	 
-    	 GroupMember groupMember = groupMemberOptional.get();
-    	 
-    	 String currentUserId = SecurityUtil.getCurrentUser().getUserId();
-    	 
-    	 String groupId = groupMember.getGroup().getId();
-    
-    	 return groupMemberQueryProcessor.getByUserIdAndGroupId(currentUserId, groupId)
-				    	 .filter(member ->
-				         member.getMembershipStatus() == MembershipStatus.ACTIVE &&
-				         !member.isGroupDeleted() && member.getUserPermissions().contains(UserGroupPermission.INVITE_USER)
-				).isPresent();
-    }
-    
+        
     public boolean canViewResource(PresignedResourceResponse resource) {
 
         if (resource == null) return false;
@@ -154,6 +109,7 @@ public class AccessControlService {
 	}
 
     private boolean hasRole(CustomPrincipal principal, UserRole role) {
+    	
         return principal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .anyMatch(auth -> auth.equals("ROLE_" + role.name()));

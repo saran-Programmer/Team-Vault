@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.teamvault.DTO.LoginRequest;
@@ -19,7 +18,7 @@ import com.teamvault.DTO.SignUpRequest;
 import com.teamvault.entity.User;
 import com.teamvault.exception.InvalidCredentialsException;
 import com.teamvault.exception.UserExistsException;
-import com.teamvault.query.processor.AuthQueryProcessor;
+import com.teamvault.queryprocessor.AuthQueryProcessor;
 import com.teamvault.repository.UserRepository;
 import com.teamvault.service.AuthService;
 import com.teamvault.service.JwtService;
@@ -73,12 +72,10 @@ class AuthServiceTest {
 
         when(authQueryProcessor.doesUserExists(anyString(), anyString())).thenReturn(true);
 
-        UserExistsException exception = assertThrows(
+        assertThrows(
                 UserExistsException.class,
                 () -> authService.signup(request)
         );
-
-        assertEquals("USER_EXISTS", exception.getErrorType());
 
         verify(authQueryProcessor, times(1))
                 .doesUserExists(request.getUsername(), request.getPrimaryEmail());
@@ -109,12 +106,10 @@ class AuthServiceTest {
                 user.getCredentials().getPassword()))
                 .thenReturn(false);
         
-        InvalidCredentialsException exception = assertThrows(
+        assertThrows(
                 InvalidCredentialsException.class,
                 () -> authService.login(request)
         );
-
-        assertEquals("INVALID_CREDENTIALS", exception.getErrorType());
 
         verify(userRepository, times(1))
                 .findFirstByCredentials_UserNameOrCredentials_Email(

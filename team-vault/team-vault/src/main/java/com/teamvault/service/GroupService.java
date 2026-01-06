@@ -14,7 +14,7 @@ import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.mapper.GroupMapper;
 import com.teamvault.mapper.GroupMemberMapper;
-import com.teamvault.query.processor.GroupQueryProcessor;
+import com.teamvault.queryprocessor.GroupQueryProcessor;
 import com.teamvault.repository.GroupMemberRepository;
 import com.teamvault.repository.GroupRepository;
 import com.teamvault.security.filter.SecurityUtil;
