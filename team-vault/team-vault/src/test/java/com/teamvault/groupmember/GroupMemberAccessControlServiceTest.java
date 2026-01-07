@@ -128,19 +128,6 @@ class GroupMemberAccessControlServiceTest {
     }
 
     @Test
-    void canUploadResource_whenPermissionPresent_shouldReturnTrue() {
-
-        GroupMember member = groupMember("user-1", "group-1",
-                Set.of(UserGroupPermission.WRITE_RESOURCE),
-                MembershipStatus.ACTIVE, false);
-
-        when(groupMemberQueryProcessor.getGroupMemberById("gm-2"))
-                .thenReturn(Optional.of(member));
-
-        assertTrue(service.canUploadResource("gm-2"));
-    }
-
-    @Test
     void canRemoveGroupMember_whenInviterPermissionPresent_shouldReturnTrue() {
 
         GroupMember target = groupMember("user-2", "group-1",

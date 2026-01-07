@@ -160,8 +160,7 @@ public class ResourceS3Service {
     @Retryable(
     	retryFor = { SdkException.class, IOException.class },
     	maxAttempts = 3,
-    	backoff = @Backoff(delay = 1000, multiplier = 2.0)
-    )
+    	backoff = @Backoff(delay = 1000, multiplier = 2.0))
     public void markObjectAsDeleted(Resource resource) {
 
         String objectKey = resource.getGroup().getId() + "/" + resource.getUser().getId() + "/" + resource.getS3Details().getFileName();

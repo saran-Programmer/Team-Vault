@@ -42,10 +42,6 @@ public class GroupMemberAccessControllService {
         return hasPermission(groupMemberId, UserGroupPermission.MANAGE_USER_ROLES);
     }
 
-    public boolean canUploadResource(String groupMemberId) {
-        return hasPermission(groupMemberId, UserGroupPermission.WRITE_RESOURCE);
-    }
-
     public boolean canRemoveGroupMember(String groupMemberId) {
 
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();

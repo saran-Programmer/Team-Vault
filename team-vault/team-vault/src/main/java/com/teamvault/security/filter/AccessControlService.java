@@ -45,7 +45,24 @@ public class AccessControlService {
     
     public boolean canAccessGroupResources(String groupMemberId) {
     	
+        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
+        
+        if (currentUser == null) return false;
+
+        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
+    	
         return hasPermission(groupMemberId, UserGroupPermission.READ_RESOURCE);
+    }
+    
+    public boolean canUploadResource(String groupMemberId) {
+    	
+        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
+        
+        if (currentUser == null) return false;
+
+        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
+    	
+        return hasPermission(groupMemberId, UserGroupPermission.WRITE_RESOURCE);
     }
         
     public boolean canViewResource(PresignedResourceResponse resource) {
