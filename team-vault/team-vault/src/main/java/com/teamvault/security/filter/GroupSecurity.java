@@ -1,7 +1,5 @@
 package com.teamvault.security.filter;
 
-import java.util.Optional;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -99,21 +97,6 @@ public class GroupSecurity {
                         && member.getUserPermissions().contains(UserGroupPermission.READ_RESOURCE)).isPresent();
     }
     
-    public boolean canModifyResource(String resourceId) {
-    	
-        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
-        
-        if (currentUser == null) return false;
-        
-        Optional<Resource> resourceDoc = resourceRepository.findById(resourceId);
-        
-        if(resourceDoc.isEmpty()) return false;
-        
-        Resource resource = resourceDoc.get();
-        
-        return resource.getUser().getId().equals(currentUser.getUserId());
-    }
-
 
     private boolean hasRole(CustomPrincipal principal, UserRole role) {
         return principal.getAuthorities().stream()

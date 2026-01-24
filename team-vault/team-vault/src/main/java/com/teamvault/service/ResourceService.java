@@ -22,12 +22,15 @@ import com.teamvault.entity.Resource;
 import com.teamvault.enums.ResourceSortField;
 import com.teamvault.enums.ResourceVisiblity;
 import com.teamvault.enums.SortDirection;
+import com.teamvault.enums.UserRole;
 import com.teamvault.exception.InvalidActionException;
 import com.teamvault.exception.ResourceNotFoundException;
 import com.teamvault.exception.S3Exception;
 import com.teamvault.fields.CacheName;
 import com.teamvault.mapper.ResourceMapper;
+import com.teamvault.models.CustomPrincipal;
 import com.teamvault.models.S3Details;
+import com.teamvault.queryprocessor.GroupMemberQueryProcessor;
 import com.teamvault.queryprocessor.ResourceQueryProcessor;
 import com.teamvault.repository.ResourceRepository;
 import com.teamvault.security.filter.SecurityUtil;
@@ -50,26 +53,36 @@ public class ResourceService {
 	
 	private final UploadProgressService uploadProgressService;
 	
+	private final GroupMemberQueryProcessor groupMemberQueryProcessor;
+	
 	private static final long PRESIGNED_URL_EXPIRY_SECONDS = 900L;
 	
 	private static final long DIRECT_UPLOAD_MAX_SIZE_BYTES = 10 * 1024 * 1024;
 	
 	private static final long MULTIPART_CHUNK_SIZE_BYTES = 5L * 1024 * 1024;
 
-	public PresignedResourceResponse addNewResourceToGroup(String groupMemberId, ResourceUploadRequest resourceUploadRequest, MultipartFile file) {
+	public PresignedResourceResponse addNewResourceToGroup(String groupId, ResourceUploadRequest resourceUploadRequest, MultipartFile file) {
 		
 		if(file == null || file.isEmpty()) {
 			
 			throw new InvalidActionException("File upload is mandatory");
 		}
 
-		String currentUserId = SecurityUtil.getCurrentUser().getUserId();
+		CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
 		
-		GroupMember groupMemeber = groupMemberService.getActiveGroupMemberOrThrow(groupMemberId);
+		String currentUserId = currentUser.getUserId();
 		
-		Resource resource = ResourceMapper.resourceUploadRequestToGroupMember(resourceUploadRequest, groupMemeber);
+		String groupMemberId = null;
 		
-	    String cachePath = groupMemeber.getUser().getId() + "." + resourceUploadRequest.getTitle();
+		if(!currentUser.getRole().equals(UserRole.SUPER_ADMIN.toString())) {
+			
+			// Added the null checks are done in the authentication layer
+			groupMemberId = groupMemberQueryProcessor.getByUserIdAndGroupId(currentUserId, groupId).get().getId();
+		}
+		
+		Resource resource = ResourceMapper.resourceUploadRequestToGroupMember(resourceUploadRequest, groupMemberId, groupId, currentUserId);
+		
+	    String cachePath = currentUser.getUserId() + "." + resourceUploadRequest.getTitle();
 	    
 	    uploadProgressService.initUploadCache(cachePath);
 		
@@ -77,8 +90,8 @@ public class ResourceService {
 			
 			S3Details s3DDetails;
 			
-			if(file.getSize() <= DIRECT_UPLOAD_MAX_SIZE_BYTES) s3DDetails = directS3Upload(file, groupMemeber.getGroup().getId(), currentUserId, cachePath);
-			else s3DDetails = chunkedFileUpload(groupMemeber, file, resourceUploadRequest, cachePath);
+			if(file.getSize() <= DIRECT_UPLOAD_MAX_SIZE_BYTES) s3DDetails = directS3Upload(file, groupId, currentUserId, cachePath);
+			else s3DDetails = chunkedFileUpload(groupId, currentUserId, file, resourceUploadRequest, cachePath);
 			
 			resource.setS3Details(s3DDetails);
 			
@@ -105,11 +118,12 @@ public class ResourceService {
 		return s3Details;
 	}
 	
-	public S3Details chunkedFileUpload(GroupMember groupMember, MultipartFile file, @Valid ResourceUploadRequest request, String cachePath) {
+	public S3Details chunkedFileUpload(String groupId, String currentUserId, MultipartFile file, 
+			@Valid ResourceUploadRequest request, String cachePath) {
 
 	    long fileSize = file.getSize();
 
-	    String objectKey = groupMember.getGroup().getId() + "/" + groupMember.getUser().getId() + "/" + file.getOriginalFilename();
+	    String objectKey = groupId + "/" + currentUserId + "/" + file.getOriginalFilename();
 
 	    String uploadId = resourceS3Service.createMultipartUpload(objectKey, fileSize, file.getContentType());
 	    
@@ -195,14 +209,10 @@ public class ResourceService {
 		resourceRepository.save(resource);
 	}
 	
-	public List<ResourceResponse> listResourcesDTO(String groupMemberId, ResourceVisiblity resourceVisiblity, 
+	public List<ResourceResponse> listResourcesDTO(String groupId, ResourceVisiblity resourceVisiblity, 
 			ResourceSortField resourceSortField, SortDirection sortDirection,int offset, int limit) {
 		
-		GroupMember groupMember = groupMemberService.getActiveGroupMemberOrThrow(groupMemberId);
-		
-		String userId = groupMember.getUser().getId();
-		
-		String groupId = groupMember.getGroup().getId();
+		String userId = SecurityUtil.getCurrentUserId();
 
 		return resourceQueryProcessor.listResourcesDTO(userId, groupId, resourceVisiblity, resourceSortField, sortDirection, offset, limit);
 	}

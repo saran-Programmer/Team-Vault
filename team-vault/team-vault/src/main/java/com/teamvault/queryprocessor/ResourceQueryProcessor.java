@@ -75,10 +75,12 @@ public class ResourceQueryProcessor {
 	}
 
 	private Criteria visibilityOnly(ResourceVisiblity visibility) {
+		
 	    return Criteria.where(ResourceFields.VISIBLITY).is(visibility);
 	}
 
 	private Criteria visibilityWithUser(ResourceVisiblity visibility, String userId) {
+		
 	    return Criteria.where(ResourceFields.VISIBLITY).is(visibility)
 	            .and(ResourceFields.USER_ID).is(userId);
 	}

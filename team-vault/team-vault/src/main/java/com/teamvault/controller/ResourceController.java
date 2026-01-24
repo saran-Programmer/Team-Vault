@@ -46,12 +46,12 @@ public class ResourceController {
 	}
 	
 	@CanUploadResource
-	@PostMapping(value = "/{groupMemberId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<?> addNewResourceToGroup(@PathVariable String groupMemberId,
+	@PostMapping(value = "/{groupId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<?> addNewResourceToGroup(@PathVariable String groupId,
 		        @ModelAttribute @Valid ResourceUploadRequest request,
 		        @RequestPart("file") MultipartFile file) {
 		
-		return ResponseEntity.accepted().body(resourceService.addNewResourceToGroup(groupMemberId, request, file));
+		return ResponseEntity.accepted().body(resourceService.addNewResourceToGroup(groupId, request, file));
 	}
 	
 	@GetMapping("/upload-progress")
@@ -82,15 +82,15 @@ public class ResourceController {
 	}
 	
 	@CanViewGroupResources
-	@GetMapping("/{groupMemberId}/resources")
-	public ResponseEntity<?> listResourcesDTO(@PathVariable String groupMemberId,
+	@GetMapping("/{groupId}/resources")
+	public ResponseEntity<?> listResourcesDTO(@PathVariable String groupId,
 			@RequestParam(defaultValue = ResourceVisiblity.DEFAULT_RESOURCE_VISIBLITY) ResourceVisiblity resourceVisiblity,
 			@RequestParam(defaultValue = ResourceSortField.DEFAULT_SORT_FIELD) ResourceSortField resourceSortField,
 			@RequestParam(defaultValue = SortDirection.DEFAULT) SortDirection sortDirection,
 			@RequestParam(defaultValue = "0") int offset,
 	        @RequestParam(defaultValue = "10") int limit) {
 		
-		var resourceDTO = resourceService.listResourcesDTO(groupMemberId, resourceVisiblity, resourceSortField, 
+		var resourceDTO = resourceService.listResourcesDTO(groupId, resourceVisiblity, resourceSortField, 
 				sortDirection, offset, limit);
 
 		return ResponseEntity.ok(resourceDTO);

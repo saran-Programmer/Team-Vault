@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class GroupMemberVO {
 
 	private String id;
+	
+	private boolean isSuperAdmin;
 }

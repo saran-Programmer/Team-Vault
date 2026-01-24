@@ -26,7 +26,7 @@ public class AccessControlService {
     
     private final ResourceQueryProcessor resourceQueryProcessor;
     
-    private boolean hasPermission(String groupMemberId, UserGroupPermission permission) {
+    private boolean hasPermission(String groupId, String currentUserId,UserGroupPermission permission) {
     	
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
@@ -34,16 +34,14 @@ public class AccessControlService {
 
         if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
 
-        return groupMemberQueryProcessor.getGroupMemberById(groupMemberId)
-                .filter(member ->
-                		member.getUser().getId().equals(currentUser.getUserId()) && 
-                        member.getMembershipStatus() == MembershipStatus.ACTIVE &&
-                        !member.isGroupDeleted() &&
-                        member.getUserPermissions().contains(permission)
-                ).isPresent();
+    	return groupMemberQueryProcessor.getByUserIdAndGroupId(currentUser.getUserId(), groupId)
+    			.filter(member -> member.getUser().getId().equals(currentUser.getUserId()) && 
+    			member.getMembershipStatus() == MembershipStatus.ACTIVE &&
+    			!member.isGroupDeleted() &&
+    			member.getUserPermissions().contains(UserGroupPermission.WRITE_RESOURCE)).isPresent();
     }
     
-    public boolean canAccessGroupResources(String groupMemberId) {
+    public boolean canAccessGroupResources(String groupId) {
     	
         CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
         
@@ -51,18 +49,18 @@ public class AccessControlService {
 
         if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
     	
-        return hasPermission(groupMemberId, UserGroupPermission.READ_RESOURCE);
+        return hasPermission(groupId, currentUser.getUserId(),UserGroupPermission.READ_RESOURCE);
     }
     
-    public boolean canUploadResource(String groupMemberId) {
-    	
-        CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
-        
-        if (currentUser == null) return false;
+    public boolean canUploadResource(String groupId) {
 
-        if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
-    	
-        return hasPermission(groupMemberId, UserGroupPermission.WRITE_RESOURCE);
+    	CustomPrincipal currentUser = SecurityUtil.getCurrentUser();
+
+    	if (currentUser == null) return false;
+
+    	if (hasRole(currentUser, UserRole.SUPER_ADMIN)) return true;
+
+        return hasPermission(groupId, currentUser.getUserId(),UserGroupPermission.WRITE_RESOURCE);
     }
         
     public boolean canViewResource(PresignedResourceResponse resource) {
