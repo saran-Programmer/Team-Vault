@@ -19,5 +19,4 @@ public class TeamVaultApplication {
     public static void main(String[] args) {
         SpringApplication.run(TeamVaultApplication.class, args);
     }
-
 }
